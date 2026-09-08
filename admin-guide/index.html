@@ -1,0 +1,2546 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="As-built technical documentation for the Choose My Lawyer legal comparison platform: system design, ranking methodology, email workflow, and operations.">
+      
+      
+        <meta name="author" content="Choose My Lawyer">
+      
+      
+        <link rel="canonical" href="https://tomstagg.github.io/cml-docs/admin-guide/">
+      
+      
+        <link rel="prev" href="../email-workflow-diagram/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.59">
+    
+    
+      
+        <title>Admin guide - Choose My Lawyer — Technical Documentation</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cml-admin-guide-operations-runbook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-header__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Choose My Lawyer — Technical Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Admin guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-nav__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Choose My Lawyer — Technical Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Overview
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  System design
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ranking-algorithm-worked-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Ranking — worked examples
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email-workflow-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Email workflow
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Admin guide
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Admin guide
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-enrolling-a-new-firm-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Enrolling a new firm user
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Enrolling a new firm user">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.1 Mental model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-the-flow-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.2 The flow at a glance
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.3 Prerequisites
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.4 Step by step
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-adding-another-user-to-an-enrolled-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.5 Adding another user to an enrolled firm
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.6 Troubleshooting
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-after-enrolment-password-lifecycle-no-admin-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.7 After enrolment — password lifecycle (no admin action)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-reseeds-master-export-refreshes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Database reseeds &amp; Master Export refreshes
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Database reseeds &amp; Master Export refreshes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration-policy-changed-at-go-live-issue-155-d-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ⚠️ Migration policy changed at go-live (issue #155, D-4)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2a-wipe-and-reseed-local-rebuild-or-backed-up-production-rebuild" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2.A Wipe-and-reseed (local rebuild, or backed-up production rebuild)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2b-import-only-refresh-data-only-no-schema-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2.B Import-only refresh (data only, no schema change)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-testing-transactional-email-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Testing transactional email in production
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Testing transactional email in production">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-contain-the-blast-radius" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.1 Contain the blast radius
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-set-the-key-and-trigger-a-send" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.2 Set the key and trigger a send
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-confirm-deliverability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.3 Confirm deliverability
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-walking-the-email-workflow-through-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.4 Walking the email workflow through time
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-previewing-email-templates-without-sending" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.5 Previewing email templates without sending
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-restore-before-go-live" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.6 Restore before go-live ⚠️
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-admin-metrics-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Admin metrics dashboard
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Admin metrics dashboard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-how-to-sign-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.1 How to sign in
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-what-it-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.2 What it shows
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-caveats-when-reading-the-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.3 Caveats when reading the numbers
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-voiding-a-live-referral-issue-176" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.4 Voiding a live referral (issue #176)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-pilot-feedback-issue-119" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.5 Pilot feedback (issue #119)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-local-development-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Local development environment
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Local development environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-orbstack-memorycpu-allocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.1 OrbStack memory/CPU allocation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-stopping-containers-during-backend-test-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.2 Stopping containers during backend test runs
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-backend-suite-baseline-re-measuring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.3 Backend suite baseline &amp; re-measuring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-hardware-note-advisory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.4 Hardware note (advisory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-repository-ci-gates-deployment-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Repository, CI gates &amp; deployment wiring
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Repository, CI gates &amp; deployment wiring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-where-the-repository-lives" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.1 Where the repository lives
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-branch-protection-on-main" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.2 Branch protection on <code>main</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-railway-deployment-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.3 Railway deployment wiring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-what-survives-a-repository-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.4 What survives a repository transfer
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-domains-dns-apex-www" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Domains &amp; DNS (apex → www)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Domains &amp; DNS (apex → www)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.1 Current state
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-the-application-side-issue-146" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.2 The application side (issue #146)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-operator-steps-pointing-the-apex-at-railway" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.3 Operator steps — pointing the apex at Railway
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.4 Verification
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-re-enumerating-the-zone-before-a-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.5 Re-enumerating the zone before a migration
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-enrolling-a-new-firm-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Enrolling a new firm user
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Enrolling a new firm user">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.1 Mental model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-the-flow-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.2 The flow at a glance
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.3 Prerequisites
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.4 Step by step
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-adding-another-user-to-an-enrolled-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.5 Adding another user to an enrolled firm
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.6 Troubleshooting
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-after-enrolment-password-lifecycle-no-admin-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1.7 After enrolment — password lifecycle (no admin action)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-reseeds-master-export-refreshes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Database reseeds &amp; Master Export refreshes
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Database reseeds &amp; Master Export refreshes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration-policy-changed-at-go-live-issue-155-d-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ⚠️ Migration policy changed at go-live (issue #155, D-4)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2a-wipe-and-reseed-local-rebuild-or-backed-up-production-rebuild" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2.A Wipe-and-reseed (local rebuild, or backed-up production rebuild)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2b-import-only-refresh-data-only-no-schema-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2.B Import-only refresh (data only, no schema change)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-testing-transactional-email-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Testing transactional email in production
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Testing transactional email in production">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-contain-the-blast-radius" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.1 Contain the blast radius
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-set-the-key-and-trigger-a-send" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.2 Set the key and trigger a send
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-confirm-deliverability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.3 Confirm deliverability
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-walking-the-email-workflow-through-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.4 Walking the email workflow through time
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-previewing-email-templates-without-sending" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.5 Previewing email templates without sending
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-restore-before-go-live" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3.6 Restore before go-live ⚠️
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-admin-metrics-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Admin metrics dashboard
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Admin metrics dashboard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-how-to-sign-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.1 How to sign in
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-what-it-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.2 What it shows
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-caveats-when-reading-the-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.3 Caveats when reading the numbers
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-voiding-a-live-referral-issue-176" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.4 Voiding a live referral (issue #176)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-pilot-feedback-issue-119" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.5 Pilot feedback (issue #119)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-local-development-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Local development environment
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Local development environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-orbstack-memorycpu-allocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.1 OrbStack memory/CPU allocation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-stopping-containers-during-backend-test-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.2 Stopping containers during backend test runs
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-backend-suite-baseline-re-measuring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.3 Backend suite baseline &amp; re-measuring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-hardware-note-advisory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.4 Hardware note (advisory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-repository-ci-gates-deployment-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Repository, CI gates &amp; deployment wiring
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Repository, CI gates &amp; deployment wiring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-where-the-repository-lives" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.1 Where the repository lives
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-branch-protection-on-main" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.2 Branch protection on <code>main</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-railway-deployment-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.3 Railway deployment wiring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-what-survives-a-repository-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.4 What survives a repository transfer
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-domains-dns-apex-www" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Domains &amp; DNS (apex → www)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Domains &amp; DNS (apex → www)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.1 Current state
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-the-application-side-issue-146" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.2 The application side (issue #146)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-operator-steps-pointing-the-apex-at-railway" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.3 Operator steps — pointing the apex at Railway
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.4 Verification
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-re-enumerating-the-zone-before-a-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7.5 Re-enumerating the zone before a migration
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="cml-admin-guide-operations-runbook">CML Admin Guide (operations runbook)<a class="headerlink" href="#cml-admin-guide-operations-runbook" title="Permanent link">&para;</a></h1>
+<p>Operational procedures for CML administrators. For the pilot, firms are <strong>manually enrolled and
+priced</strong>. For how the system works (data model, ranking/pricing engines, integrations) see
+<code>docs/system-design.md</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Security note:</strong> all admin endpoints require the <code>ADMIN_API_KEY</code> (<code>X-Admin-Key</code> header). Treat it
+as a secret — never paste a real key into docs, tickets, or commits.</p>
+</blockquote>
+<p>Contents: §1 firm-user enrolment · §2 database reseeds &amp; Master Export refreshes · §3 testing
+transactional email · §4 admin metrics dashboard · §5 local development environment · §6 repository,
+CI gates &amp; deployment wiring · §7 domains &amp; DNS (apex → www).</p>
+<hr />
+<h2 id="1-enrolling-a-new-firm-user">1. Enrolling a new firm user<a class="headerlink" href="#1-enrolling-a-new-firm-user" title="Permanent link">&para;</a></h2>
+<h3 id="11-mental-model">1.1 Mental model<a class="headerlink" href="#11-mental-model" title="Permanent link">&para;</a></h3>
+<p>A firm does <strong>not</strong> self-serve sign-up. The admin invites a firm; the firm then sets its own password
+from a one-time link. Three facts to keep straight:</p>
+<ul>
+<li><strong>Two different emails exist on a firm</strong> — they are not the same thing:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Lives on</th>
+<th>Set by</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Organisation.referral_email</code></td>
+<td>the <strong>firm/org</strong> record</td>
+<td>admin / Master Export import</td>
+<td>Where the enrolment invite is sent, and where Proceed/Callback lead notifications go</td>
+</tr>
+<tr>
+<td><code>FirmUser.email</code></td>
+<td>the <strong>user</strong> record</td>
+<td>the firm, during enrolment</td>
+<td>The firm's <strong>login credential</strong> (also used for password reset)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The binding is the enrolment token, not the email.</strong> The single-use token identifies the
+  organisation; whoever opens the link becomes a login user on it. The login email the firm
+  types is <em>not</em> checked against <code>referral_email</code>, nor against the address the invite was sent to.</li>
+<li><strong>A firm can have more than one user.</strong> Once a firm is enrolled, an additional colleague is invited
+  with <code>invite-user</code> (§1.5), which mints a token for the same org and leaves <code>referral_email</code> alone.
+  Each invite replaces the org's outstanding token, so only the newest link works.</li>
+<li><strong>The invite email becomes the lead address — choose it carefully.</strong> The email confirmed at invite
+  time (CLI prompt or JSON body) <strong>overwrites</strong> <code>referral_email</code> on the org, and that is where all
+  future Proceed/Callback leads go. Enrolment never syncs it back from the sign-up email, and once a
+  firm is enrolled there is currently <strong>no admin endpoint to change it</strong> (re-invite returns 409) —
+  only a Master Export re-import (§2.B) or direct DB access. So invite the firm's intended lead
+  inbox (e.g. <code>enquiries@…</code>), not a personal address.</li>
+<li><strong><code>FirmUser.email</code> is globally unique</strong> — the same email cannot be reused across two firms.</li>
+</ul>
+<h3 id="12-the-flow-at-a-glance">1.2 The flow at a glance<a class="headerlink" href="#12-the-flow-at-a-glance" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>(admin) org exists with a referral_email
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        ▼
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>(admin) POST .../invite-enrollment ──▶ generates single-use token, sends invite (prod) / returns token (local)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ▼
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>(firm)  opens /enroll/&lt;token&gt; ──▶ sets login email + password, accepts terms
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        ▼
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>(firm)  logged in at /dashboard; can log in at /login, manage pricing, reset/change password
+</span></code></pre></div>
+<p>Adding a colleague to a firm that is <strong>already</strong> enrolled follows the same shape, minus the org changes:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>(admin) POST .../invite-user {"email": "colleague@firm.co.uk"} ──▶ new single-use token, invite to that address
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        ▼                                                          (referral_email untouched)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>(firm)  opens /enroll/&lt;token&gt; ──▶ sets their own login email + password, accepts terms
+</span></code></pre></div>
+<h3 id="13-prerequisites">1.3 Prerequisites<a class="headerlink" href="#13-prerequisites" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>The admin API key.</strong> Every <code>/api/admin/*</code> call requires <code>X-Admin-Key: &lt;key&gt;</code>.</li>
+<li>Local dev: <code>local-dev-admin-key</code> (from <code>.env</code> / <code>docker-compose.yml</code>).</li>
+<li>Production: the <code>ADMIN_API_KEY</code> value in Railway env vars (a real secret — never commit it).</li>
+<li><strong>The organisation must already exist</strong>, created by the <strong>Master Export import</strong>
+   (<code>scripts/import_master_export.py</code>). There is no admin endpoint to create an org; a brand-new firm
+   must be added to the export and re-imported (§2).</li>
+<li><strong>A <code>referral_email</code> for the organisation.</strong> The invite endpoint refuses (HTTP 400) without one —
+   but it can be supplied at invite time (the CLI prompts for it; the raw endpoint accepts an
+   optional <code>{"referral_email": ...}</code> body), so a missing/stale email on record is not a blocker.</li>
+</ol>
+<p>Base URLs:
+- Local API <code>http://localhost:8000</code> · Local portal <code>http://localhost:3000</code>
+- Production API <code>https://api.choosemylawyer.ai</code> · Production portal <code>https://www.choosemylawyer.ai</code>
+  (www is the canonical host — see §7. The underlying Railway URLs still work, but prefer the
+  custom domains: the frontend calls <code>api.choosemylawyer.ai</code>, and it is in the CSP <code>connect-src</code>.)</p>
+<h3 id="14-step-by-step">1.4 Step by step<a class="headerlink" href="#14-step-by-step" title="Permanent link">&para;</a></h3>
+<p><strong>The easy way — the <code>cml-onboard</code> CLI</strong> (<code>backend/scripts/onboard_firm.py</code>):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cml-onboard<span class="w">            </span><span class="c1"># production (the default — sends real emails)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cml-onboard<span class="w"> </span>--local<span class="w">    </span><span class="c1"># local docker, for testing</span>
+</span></code></pre></div>
+<p>The alias sources a local (never-committed) secrets file holding
+<code>CML_ADMIN_API_KEY</code> (and optionally <code>CML_API_URL</code>) — then runs the script with uv. The CLI:</p>
+<ol>
+<li>asks for a firm-name search and lists matches with their status (name, SRA number,
+   enrolled / not enrolled, email on record);</li>
+<li><strong>branches on that status</strong> — a not-enrolled firm gets the enrolment prompt below; an enrolled one
+   gets the add-a-user prompt (§1.5);</li>
+<li>asks for the referral email — Enter keeps the one on record;</li>
+<li>shows a confirmation summary (the action, firm, email, API host) and only sends on an explicit <code>y</code>;</li>
+<li>sends the invitation and prints the link, then offers to do another firm.</li>
+</ol>
+<p><strong>The manual way — curl.</strong> Find the organisation (optionally filter with <code>&amp;search=</code>):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-Admin-Key: </span><span class="nv">$ADMIN_API_KEY</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$API_BASE</span><span class="s2">/api/admin/organisations?enrolled=false&amp;limit=20"</span>
+</span></code></pre></div>
+<p>The response lists each org's <code>id</code>, <code>trading_name</code>, <code>enrolled</code>, <code>referral_email</code>. Then send the
+invitation — the optional body sets/overrides the org's <code>referral_email</code> first:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-Admin-Key: </span><span class="nv">$ADMIN_API_KEY</span><span class="s2">"</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"referral_email": "person@firm.co.uk"}'</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$API_BASE</span><span class="s2">/api/admin/organisations/&lt;ORG_ID&gt;/invite-enrollment"</span>
+</span></code></pre></div>
+<p>Success returns:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Enrollment invitation sent to person@firm.co.uk"</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">"enrollment_token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;single-use-token&gt;"</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>This generates a fresh single-use token, stamps it on the org, and emails the invite to the org's
+<code>referral_email</code>. The enrolment URL is <code>&lt;portal-base&gt;/enroll/&lt;enrollment_token&gt;</code>.</p>
+<ul>
+<li><strong>Production:</strong> SparkPost sends the email; the token is also returned so you can hand-deliver the link.</li>
+<li><strong>Local dev:</strong> email runs in <strong>mock mode</strong> (logged only). Build the link from the returned token, e.g.
+  <code>http://localhost:3000/enroll/&lt;single-use-token&gt;</code>.</li>
+</ul>
+<p><strong>The firm completes enrolment.</strong> The <code>/enroll/&lt;token&gt;</code> page captures full name, login email,
+password (min 8 chars), and a mandatory terms acceptance. On submit the org is marked <code>enrolled = true</code>,
+the token is marked used, and a <code>FirmUser</code> (role <code>admin</code>) is created. <strong>The token is single-use.</strong></p>
+<p><strong>Confirm:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-Admin-Key: </span><span class="nv">$ADMIN_API_KEY</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$API_BASE</span><span class="s2">/api/admin/organisations?enrolled=true&amp;search=&lt;firm name&gt;"</span>
+</span></code></pre></div>
+<p>The firm should appear with <code>"enrolled": true</code>. From here it self-manages (login, pricing, password).</p>
+<blockquote>
+<p><strong>Visibility ≠ enrolment.</strong> Being <code>enrolled</code> makes a firm a contactable <em>candidate</em>, but its
+Proceed/Callback buttons only appear when it ranks into the <strong>top-5 contactable</strong>, which also requires
+<code>active_in_pilot = true</code>. See <code>docs/system-design.md §7</code>.</p>
+</blockquote>
+<h3 id="15-adding-another-user-to-an-enrolled-firm">1.5 Adding another user to an enrolled firm<a class="headerlink" href="#15-adding-another-user-to-an-enrolled-firm" title="Permanent link">&para;</a></h3>
+<p>When a colleague at a firm that is already enrolled needs their own login, use <code>cml-onboard</code> exactly as
+above and pick the firm — because it shows as <code>enrolled</code>, the CLI switches to the add-a-user prompt. It
+asks for the <strong>colleague's</strong> email with no default (so Enter can't invite the firm's referral inbox by
+accident), states that the firm's <code>referral_email</code> is unchanged, and warns that this replaces any
+outstanding invitation link for that firm.</p>
+<p>The equivalent curl — note the field is <code>email</code>, not <code>referral_email</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-Admin-Key: </span><span class="nv">$ADMIN_API_KEY</span><span class="s2">"</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"email": "colleague@firm.co.uk"}'</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$API_BASE</span><span class="s2">/api/admin/organisations/&lt;ORG_ID&gt;/invite-user"</span>
+</span></code></pre></div>
+<p>Success returns the same shape as <code>invite-enrollment</code> (<code>message</code> + <code>enrollment_token</code>); the colleague
+completes the ordinary <code>/enroll/&lt;token&gt;</code> journey and gets a <code>FirmUser</code> (role <code>admin</code>) on the same org.</p>
+<p>Two properties worth knowing:</p>
+<ul>
+<li><strong>The token is not bound to the invited address.</strong> It identifies the organisation, so whoever holds
+  the link can register under any unused email. The endpoint's up-front "email already registered"
+  check is a courtesy — it stops you burning a token on a duplicate, not a guarantee about who signs up.</li>
+<li><strong>One outstanding invite per firm.</strong> Each invite (of either kind) overwrites the org's token, so an
+  earlier unused link stops working. Invite one person at a time.</li>
+</ul>
+<p>The endpoint refuses (409) for a firm that is <strong>not</strong> enrolled — use <code>invite-enrollment</code> for those.</p>
+<h3 id="16-troubleshooting">1.6 Troubleshooting<a class="headerlink" href="#16-troubleshooting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>401 Invalid admin key</code></td>
+<td>Missing/wrong <code>X-Admin-Key</code></td>
+<td>Use the correct key for the environment</td>
+</tr>
+<tr>
+<td><code>404 Organisation not found</code></td>
+<td>Wrong <code>org_id</code></td>
+<td>Re-check the id from the list endpoint</td>
+</tr>
+<tr>
+<td><code>409 Organisation is already enrolled</code></td>
+<td><code>invite-enrollment</code> on an enrolled firm</td>
+<td>For a locked-out firm use password reset; for an extra colleague use <code>invite-user</code> (§1.5)</td>
+</tr>
+<tr>
+<td><code>409 Organisation is not enrolled</code></td>
+<td><code>invite-user</code> on a firm that hasn't enrolled yet</td>
+<td>Use <code>invite-enrollment</code> — the first user arrives with enrolment</td>
+</tr>
+<tr>
+<td><code>409 Email already registered</code></td>
+<td>That login email already belongs to a <code>FirmUser</code> (globally unique)</td>
+<td>Invite a different address</td>
+</tr>
+<tr>
+<td><code>400 Organisation has no referral email on record</code></td>
+<td><code>referral_email</code> is null and none supplied</td>
+<td>Re-invite supplying the email (CLI prompt, or the JSON body above)</td>
+</tr>
+<tr>
+<td>"Invalid or already-used enrollment token"</td>
+<td>Token consumed, or a newer invite replaced it</td>
+<td>Send a fresh invite, use the newest link</td>
+</tr>
+<tr>
+<td>"Email already registered"</td>
+<td>Login email already used by another firm (globally unique)</td>
+<td>Enrol with a different email</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Setting a missing <code>referral_email</code>:</strong> supply it at invite time — the CLI always asks, and the raw
+endpoint accepts <code>{"referral_email": ...}</code>. Direct DB access is no longer needed for this.</p>
+<p><strong>Re-inviting</strong> an org issues a <strong>new</strong> token and invalidates the previous link — always hand over the
+newest link. You cannot re-run <em>enrolment</em> on an already-enrolled org (409); use password reset for a
+locked-out enrolled firm, or <code>invite-user</code> (§1.5) to add a colleague.</p>
+<h3 id="17-after-enrolment-password-lifecycle-no-admin-action">1.7 After enrolment — password lifecycle (no admin action)<a class="headerlink" href="#17-after-enrolment-password-lifecycle-no-admin-action" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Forgot password</strong> — <code>/forgot-password</code>: the firm receives a reset link valid <strong>3 hours</strong>, single-use.
+  Locally (mock email) read the token from the DB:
+  <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>cml<span class="w"> </span>-d<span class="w"> </span>cml_db<span class="w"> </span>-c<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="s2">"SELECT email, password_reset_token, password_reset_expires_at FROM firm_users WHERE email='&lt;login-email&gt;';"</span>
+</span></code></pre></div></li>
+<li><strong>Change password</strong> — <code>/profile</code> (logged in): confirm current password, set a new one.</li>
+</ul>
+<p>There is no admin password-reset endpoint.</p>
+<hr />
+<h2 id="2-database-reseeds-master-export-refreshes">2. Database reseeds &amp; Master Export refreshes<a class="headerlink" href="#2-database-reseeds-master-export-refreshes" title="Permanent link">&para;</a></h2>
+<blockquote>
+<h3 id="migration-policy-changed-at-go-live-issue-155-d-4">⚠️ Migration policy changed at go-live (issue #155, D-4)<a class="headerlink" href="#migration-policy-changed-at-go-live-issue-155-d-4" title="Permanent link">&para;</a></h3>
+<p>The pilot is live and holds <strong>real consumer leads</strong>. Schema changes are now made by <strong>cutting a
+new Alembic revision</strong> — additive and reversible. <code>0002</code> is the first such revision.</p>
+<p>The former pre-launch policy (edit <code>0001_initial_schema.py</code> in place, then drop and recreate the
+database) <strong>must no longer be followed</strong>: it destroys real data. §2.A below is retained only for
+local development databases and for a deliberate, backed-up production rebuild.</p>
+<p>Routine schema change, local and production:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+</span></code></pre></div>
+Confirm any new revision applies to a database already stamped at the previous head, not just to
+a fresh one.</p>
+</blockquote>
+<p>There are <strong>two</strong> distinct procedures for reseeding <em>data</em>. Pick by whether the <strong>database schema</strong>
+changed.</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Procedure</th>
+<th>Destroys other data?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A deploy changed any <strong>table/column</strong> (schema)</td>
+<td>New Alembic revision + <code>alembic upgrade head</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>Rebuilding a <strong>local dev</strong> DB, or a deliberate backed-up production rebuild</td>
+<td><strong>2.A Wipe-and-reseed</strong></td>
+<td><strong>Yes</strong> — drops everything</td>
+</tr>
+<tr>
+<td>Only the <strong>data</strong> changed (new firms/prices, or new JSON keys in <code>price_cards.pricing</code>)</td>
+<td><strong>2.B Import-only refresh</strong></td>
+<td>No — preserves users/appointments/reviews/sessions</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Note: adding keys <em>inside</em> the <code>price_cards.pricing</code> JSONB is <strong>not</strong> a schema change (no migration);
+use 2.B. Adding/removing a table or column <strong>is</strong> a schema change — cut a revision.</p>
+</blockquote>
+<h3 id="2a-wipe-and-reseed-local-rebuild-or-backed-up-production-rebuild">2.A Wipe-and-reseed (local rebuild, or backed-up production rebuild)<a class="headerlink" href="#2a-wipe-and-reseed-local-rebuild-or-backed-up-production-rebuild" title="Permanent link">&para;</a></h3>
+<p><strong>Why it exists:</strong> under the retired pre-launch policy, schema edits were made in place in
+<code>0001_initial_schema.py</code>. An in-place edit <strong>no-ops on an already-migrated DB</strong> (Alembic sees the
+revision as applied), so the live schema went stale and the app 500s on first touch (often looking
+like CORS), and the only fix was to drop and rebuild.</p>
+<blockquote>
+<p>⚠️ Drops <strong>every row</strong> — firms, firm users, chat sessions, appointments, reviews.
+<strong>Do not run this against production to apply a schema change</strong> — cut a revision instead.
+If you must rebuild production deliberately, take a <code>pg_dump</code> first.</p>
+</blockquote>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>railway<span class="w"> </span>link
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>railway<span class="w"> </span>status<span class="w">          </span><span class="c1"># confirm Project + Environment are production</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>scripts/wipe-and-reseed-railway-db.sh<span class="w"> </span>--dry-run<span class="w">   </span><span class="c1"># preview, touches nothing</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>scripts/wipe-and-reseed-railway-db.sh<span class="w">             </span><span class="c1"># type WIPE to proceed</span>
+</span></code></pre></div>
+<p>The script drops the <code>public</code> schema, runs <code>alembic upgrade head</code>, then imports the Master Export.
+Requires <code>railway</code>, <code>psql</code>, <code>jq</code>, <code>uv</code>, and public networking on the Postgres service.</p>
+<p><strong>Geocoding matters.</strong> Offices with NULL <code>lat</code>/<code>lng</code> are silently excluded from distance scoring. The
+bundled script geocodes by default, so offices get <code>lat</code>/<code>lng</code> automatically; only if you deliberately
+run the import with <code>--no-geocode</code> should you follow it with a geocoded import (§2.B step 2) so the
+Distance factor can score.</p>
+<h3 id="2b-import-only-refresh-data-only-no-schema-change">2.B Import-only refresh (data only, no schema change)<a class="headerlink" href="#2b-import-only-refresh-data-only-no-schema-change" title="Permanent link">&para;</a></h3>
+<p>The importer is idempotent: organisations are upserted by <code>cml_firm_id</code>; <code>offices</code>, <code>price_cards</code>,
+<code>complaints_summary</code>, <code>regulatory_summary</code> are deleted and re-inserted. All other tables are untouched.</p>
+<blockquote>
+<p>⚠️ <strong>Not valid when an export renumbers CML firm IDs</strong> (e.g. a firm is removed and the IDs above it
+shift down, as in the 16.07.26 export). The <code>cml_firm_id</code> upsert then tries to give an existing row
+another firm's SRA number and collides on the <code>organisations_sra_number_key</code> unique constraint.
+Such exports need the full rebuild path: 2.A in production, or locally drop/recreate <code>cml_db</code>,
+<code>alembic upgrade head</code>, then import.</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>Regenerate the six CSVs</strong> from the new workbook (overwrites <code>scripts/seed_data/master_export/</code>):
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>--with<span class="w"> </span>openpyxl<span class="w"> </span>python<span class="w"> </span>scripts/convert_master_export.py<span class="w"> </span><span class="s2">"path/to/Master Export.xlsx"</span>
+</span></code></pre></div>
+   If the export <strong>adds or moves columns</strong> (not just rows), the price parser offsets in
+   <code>scripts/import_master_export.py</code> (<code>_build_pricing</code>) must be updated to match — that is a code change
+   shipped with a normal deploy.</p>
+</li>
+<li>
+<p><strong>Import against production</strong> (no schema drop), geocoding on:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>railway<span class="w"> </span>status<span class="w">   </span><span class="c1"># confirm production project + environment</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">PG_SERVICE</span><span class="o">=</span><span class="k">$(</span>railway<span class="w"> </span>status<span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'[.environments.edges[].node.serviceInstances.edges[].node.serviceName]|unique|.[]'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s1">'^postgres'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="k">$(</span>railway<span class="w"> </span>variable<span class="w"> </span>list<span class="w"> </span>--service<span class="w"> </span><span class="s2">"</span><span class="nv">$PG_SERVICE</span><span class="s2">"</span><span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'.DATABASE_PUBLIC_URL'</span><span class="k">)</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/import_master_export.py<span class="w"> </span>--input-dir<span class="w"> </span>scripts/seed_data/master_export
+</span></code></pre></div>
+   The script runs locally against prod over <code>DATABASE_PUBLIC_URL</code>, so run it on the branch carrying the
+   new CSVs. Local equivalent: <code>docker-compose exec backend python scripts/import_master_export.py
+   --input-dir scripts/seed_data/master_export</code> (add <code>--no-geocode</code> offline, <code>--dry-run</code> to roll back).</p>
+</li>
+<li>
+<p><strong>Verify</strong> (example: confirm a new pricing key landed):
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>psql<span class="w"> </span><span class="s2">"</span><span class="nv">$DATABASE_URL</span><span class="s2">"</span><span class="w"> </span>-P<span class="w"> </span><span class="nv">pager</span><span class="o">=</span>off<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="s2">SELECT count(*) AS cards,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="s2">  count(*) FILTER (WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(pricing-&gt;'modifiers') m WHERE m-&gt;&gt;'name'='Five or more storeys (BSA)')) AS has_bsa</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="s2">FROM price_cards;"</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<blockquote>
+<p>⚠️ The import <strong>re-reads <code>enrolled</code> and <code>referral_email</code></strong> from the export and overwrites both: a firm
+left blank in the export becomes <strong>un-enrolled</strong> (its Proceed/Callback buttons disappear), and any
+email-test containment (§3.1) is undone. Confirm those columns in the workbook before importing. Once
+the platform holds real data, take a <code>pg_dump</code> first.</p>
+</blockquote>
+<hr />
+<h2 id="3-testing-transactional-email-in-production">3. Testing transactional email in production<a class="headerlink" href="#3-testing-transactional-email-in-production" title="Permanent link">&para;</a></h2>
+<p>Goal: confirm SparkPost delivers (and passes DKIM/SPF/DMARC) <strong>without emailing any real firm</strong>.
+Firm-facing mail fires <em>only</em> to <code>organisations.referral_email</code>, so containment is about controlling
+that one column. Record-level DNS setup: <code>docs/dns-email-configuration.md</code>.</p>
+<blockquote>
+<p>Flows that send to <code>referral_email</code>: <strong>Proceed</strong>, <strong>Callback</strong>, <strong>enrolment invite</strong>. Password-reset
+mail goes to <code>firm_users.email</code> instead, so this containment doesn't affect it.</p>
+</blockquote>
+<h3 id="31-contain-the-blast-radius">3.1 Contain the blast radius<a class="headerlink" href="#31-contain-the-blast-radius" title="Permanent link">&para;</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">UPDATE</span><span class="w"> </span><span class="n">organisations</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">referral_email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">UPDATE</span><span class="w"> </span><span class="n">organisations</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">referral_email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'you@example.com'</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">cml_firm_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'CML-002'</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">enrolled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1">-- verify: expect exactly ONE row</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">cml_firm_id</span><span class="p">,</span><span class="w"> </span><span class="n">trading_name</span><span class="p">,</span><span class="w"> </span><span class="n">enrolled</span><span class="p">,</span><span class="w"> </span><span class="n">referral_email</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="k">FROM</span><span class="w"> </span><span class="n">organisations</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">referral_email</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</span></code></pre></div>
+<p>If the second <code>UPDATE</code> matches 0 rows, every org ends up NULL and nothing sends — always run the verify
+<code>SELECT</code>.</p>
+<h3 id="32-set-the-key-and-trigger-a-send">3.2 Set the key and trigger a send<a class="headerlink" href="#32-set-the-key-and-trigger-a-send" title="Permanent link">&para;</a></h3>
+<p>Set <code>SPARKPOST_API_KEY</code> in Railway (empty ⇒ <strong>mock mode</strong>, logs only; setting it triggers a redeploy).
+Confirm the running app sees it:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>railway<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from app.config import settings; print(bool(settings.sparkpost_api_key), settings.sparkpost_from_email)"</span>
+</span></code></pre></div>
+<p>Then trigger one email:
+- <strong>Enrolment invite</strong> — simplest single send; use an <strong>un-enrolled</strong> org pointed at your inbox
+  (<code>invite-enrollment</code> returns 409 for an enrolled org).
+- <strong>Proceed / Callback</strong> — the firm must rank into the <strong>top-5 contactable</strong> for a search first; run a
+  search in the firm's locality, then Proceed/Callback it.</p>
+<h3 id="33-confirm-deliverability">3.3 Confirm deliverability<a class="headerlink" href="#33-confirm-deliverability" title="Permanent link">&para;</a></h3>
+<p>Open the received mail; check headers show <code>DKIM=pass</code>, <code>SPF=pass</code>, <code>DMARC=pass</code>. Sender must be
+<code>noreply@mail.choosemylawyer.ai</code> or DMARC quarantines it. A brand-new sending domain has no reputation,
+so early mail may land in spam even when authentication passes. The audit BCC is added only when
+<code>CML_AUDIT_EMAIL</code> is set, and must be a deliverable mailbox — never the <code>noreply@mail.</code> address.</p>
+<h3 id="34-walking-the-email-workflow-through-time">3.4 Walking the email workflow through time<a class="headerlink" href="#34-walking-the-email-workflow-through-time" title="Permanent link">&para;</a></h3>
+<p>The scheduled workflow cycle (outcome requests, contact checks, reminders, exceptions — see
+<code>docs/email-spec.md</code>) normally runs once a day at 09:00 and spans weeks of calendar time. To test it
+without waiting, run the cycle on demand "as of" a future date:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-Admin-Key: </span><span class="nv">$ADMIN_API_KEY</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$API_BASE</span><span class="s2">/api/admin/email-cycle/run?as_of=2026-07-20"</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># → {"as_of": "2026-07-20", "sent": {"firm_02": 1}}</span>
+</span></code></pre></div>
+<p>Create a referral (Proceed/Callback, with containment per §3.1), then call the endpoint repeatedly with
+advancing dates — e.g. +3 working days (callback outcome request), then further ahead for the consumer
+contact check, reminder and exception. Each response lists what fired; every send also appears in the
+admin email log (<code>/admin/email-log</code>). Omitting <code>as_of</code> runs the cycle for today.</p>
+<p><strong>Walking many weeks at once</strong> (e.g. reaching the 10-week Firm-05 matter-progress email) is tedious by
+hand, so <code>backend/scripts/walk_email_cycle.py</code> automates it: it calls the endpoint once per simulated
+day, prints what each day sent, and <strong>waits for Enter after any day that sent emails</strong> ("press Enter to
+continue, Ctrl+C to stop") so the tokenised links in those emails can be exercised before time moves on.
+Stdlib-only — runs on the host, no container needed:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python3<span class="w"> </span>backend/scripts/walk_email_cycle.py<span class="w">                     </span><span class="c1"># local; today + 77 days (11 weeks)</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>python3<span class="w"> </span>backend/scripts/walk_email_cycle.py<span class="w"> </span>--start<span class="w"> </span><span class="m">2026</span>-07-13<span class="w"> </span>--days<span class="w"> </span><span class="m">84</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nv">ADMIN_API_KEY</span><span class="o">=</span>&lt;prod-admin-key&gt;<span class="w"> </span>python3<span class="w"> </span>backend/scripts/walk_email_cycle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span>--base-url<span class="w"> </span>https://backend-production-2962.up.railway.app<span class="w">     </span><span class="c1"># against production</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>railway<span class="w"> </span>run<span class="w"> </span>python3<span class="w"> </span>backend/scripts/walk_email_cycle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span>--base-url<span class="w"> </span>https://backend-production-2962.up.railway.app<span class="w">     </span><span class="c1"># against production, key from Railway</span>
+</span></code></pre></div>
+<p>The admin key comes from the <code>ADMIN_API_KEY</code> environment variable, falling back to the repo-root <code>.env</code>
+(the local default). <code>railway run</code> injects <code>ADMIN_API_KEY</code> from the Railway environment, so no inline
+key is needed. Ctrl+C stops the walk, and re-running is safe (dedupe as above).</p>
+<blockquote>
+<p>⚠️ <strong>Against production, future-dated walks are effectively irreversible</strong>: emails fire for real to
+whatever transactions are pending, and dedupe then <em>suppresses</em> the legitimate send when the real
+calendar date arrives. Only walk prod while the DB holds just test transactions (containment per
+§3.1).</p>
+</blockquote>
+<p>Safe to repeat: sends are deduped per (transaction, template), so re-running a date — or the real 09:00
+cycle running later — never double-sends. Due dates are computed from when the previous email was
+actually recorded, so a chain walked this way fires slightly sooner than the real calendar would — fine
+for testing, just don't mix time-travelled dates into transactions you care about operationally.</p>
+<h3 id="35-previewing-email-templates-without-sending">3.5 Previewing email templates without sending<a class="headerlink" href="#35-previewing-email-templates-without-sending" title="Permanent link">&para;</a></h3>
+<p>Every automated template renders inside a shared branded shell (<code>backend/app/services/email_shell.py</code>,
+issue #162) — doctype, constrained width, branded header, bordered "card" treatment for the callback
+tracker / transaction summary / details blocks, and a signature block ("The CML Team" → CML logo →
+<code>info@choosemylawyer.ai</code>) appended to every send. To review the rendered output of every in-scope
+template with representative sample data, without sending anything or touching the database:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/preview_emails.py<span class="w">            </span><span class="c1"># writes HTML + text to scripts/email_preview_output/</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/preview_emails.py<span class="w"> </span>--list<span class="w">     </span><span class="c1"># list the registered keys only</span>
+</span></code></pre></div>
+<p>Runs in the backend's <code>uv</code> environment (it imports the <code>app</code> package), but needs no running server and
+no Postgres — it only calls the render functions. Output is gitignored; open the <code>.html</code> files
+directly in a browser and the paired <code>.txt</code> files show the plain-text alternative that now accompanies
+every send. <code>REGISTRY</code> in that script is the single source of truth for "every template in scope" —
+<code>backend/tests/unit/test_email_preview_registry.py</code> asserts it exactly matches the templates defined in
+<code>email.py</code> / <code>referral_emails.py</code> / <code>workflow_emails.py</code>, so a template added without a matching
+registration fails that test rather than silently going unreviewed.</p>
+<h3 id="36-restore-before-go-live">3.6 Restore before go-live ⚠️<a class="headerlink" href="#36-restore-before-go-live" title="Permanent link">&para;</a></h3>
+<p><code>SET referral_email = NULL</code> wiped the seeded addresses. Re-running <code>import_master_export.py</code> repopulates
+<code>referral_email</code> <strong>and</strong> <code>enrolled</code> from the export — so any reseed/import undoes this containment.
+Restore real addresses before real firms are invited or sent leads.</p>
+<hr />
+<h2 id="4-admin-metrics-dashboard">4. Admin metrics dashboard<a class="headerlink" href="#4-admin-metrics-dashboard" title="Permanent link">&para;</a></h2>
+<p>Hidden operations dashboard showing the consumer funnel, firm leaderboard and the chargeable-events
+ledger. It replaces the ad-hoc SQL approach for routine reporting (issue #74).</p>
+<h3 id="41-how-to-sign-in">4.1 How to sign in<a class="headerlink" href="#41-how-to-sign-in" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Browse <strong>directly</strong> to <code>https://&lt;app-domain&gt;/admin</code> (locally: <code>http://localhost:3000/admin</code>).
+   There are no links to it anywhere on the site, it is <code>noindex</code>, and it is disallowed in
+   <code>robots.txt</code> — bookmark it.</li>
+<li>You'll see an <strong>"Admin sign in"</strong> card with a single <strong>Admin key</strong> field. Enter the value of the
+   <code>ADMIN_API_KEY</code> environment variable (Railway → service → Variables in production;
+   <code>.env</code> locally, default <code>local-dev-admin-key</code>). There is no username.</li>
+<li>A wrong key shows <em>"Invalid admin key"</em> and grants nothing. The correct key opens the dashboard.</li>
+<li>The key is held in <strong>sessionStorage</strong> for the browser tab only — closing the tab (or clicking
+   <strong>Sign out</strong>, top right) forgets it, and you sign in again next time. If the key is rotated
+   mid-session you'll be dropped back to the sign-in card on the next request.</li>
+</ol>
+<blockquote>
+<p>The dashboard key <strong>is</strong> the admin API key — the same secret that protects every <code>/api/admin/*</code>
+endpoint (sent as the <code>X-Admin-Key</code> header). Rotating it in Railway signs everyone out and
+invalidates any scripts using the old key. <code>ADMIN_API_KEY</code> <strong>must be set in Railway before
+go-live</strong> — without it the dashboard cannot be accessed.</p>
+</blockquote>
+<h3 id="42-what-it-shows">4.2 What it shows<a class="headerlink" href="#42-what-it-shows" title="Permanent link">&para;</a></h3>
+<p>Pick a period at the top — <strong>7 / 30 / 90 days / All time</strong> (7/30 bucket the activity chart daily,
+90/all weekly). Every section refetches for the selected period.</p>
+<ul>
+<li><strong>Stat tiles</strong> — page views, searches started, intakes completed, results viewed, selects,
+  callback leads, interest registrations, pipeline value, average quote.</li>
+<li><strong>Funnel</strong> — sessions started → intakes completed → results viewed → converted, with conversion
+  rates between stages.</li>
+<li><strong>Activity over time</strong> — sessions started vs selects + callback leads, zero-filled buckets.</li>
+<li><strong>Lead quality</strong> — callback contact rate, conflict-check outcomes, reviews received.</li>
+<li><strong>Marketing</strong> — Google Ads click-ID share of sessions and conversions (paid session share).</li>
+<li><strong>Firm leaderboard</strong> — every enrolled firm (including zero-lead firms) plus any non-enrolled firm
+  with interest registrations (the recruitment pipeline), sorted by total leads.</li>
+<li><strong>Chargeable-events ledger</strong> — one row per Select/Callback lead: short unique ID (hover for the
+  full ID), date, type, firm, client name + email, matter summary, quote, conflict-check outcome and
+  contacted flag. This is the <strong>billing audit trail</strong> — each row corresponds 1:1 with the lead email
+  the firm received, so use it to reconcile the periodic manual invoices.</li>
+</ul>
+<h3 id="43-caveats-when-reading-the-numbers">4.3 Caveats when reading the numbers<a class="headerlink" href="#43-caveats-when-reading-the-numbers" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Page-view and funnel event counts are consent-gated</strong> — visitors who decline marketing cookies
+  are not counted, so those figures <strong>undercount</strong>. Leads, appointments and interest registrations
+  come from durable tables and are exact.</li>
+<li><strong>Pipeline value</strong> counts each callback submission <strong>once</strong>, at the <strong>highest</strong> quoted price
+  among the firms selected (a submission with no quotes contributes nothing); Selects contribute
+  their own quote. The same definition drives the average-quote tile. On the <strong>firm leaderboard</strong>,
+  every firm involved in a callback carries the submission's highest quote as that lead's
+  pipeline value — not the firm's own quote — so leaderboard values are not additive across firms.
+  The <strong>ledger</strong> still itemises each firm's own quote per row (the billing audit trail is
+  unchanged). Pipeline value measures lead pipeline, not instructed work.</li>
+<li>The API behind the dashboard is available for scripted export if needed:
+  <code>GET /api/admin/metrics/{summary|timeseries|firms|ledger}</code> with the <code>X-Admin-Key</code> header, e.g.
+  <code>curl -H "X-Admin-Key: $ADMIN_API_KEY" "https://&lt;api-domain&gt;/api/admin/metrics/ledger?limit=500"</code>.</li>
+</ul>
+<h3 id="44-voiding-a-live-referral-issue-176">4.4 Voiding a live referral (issue #176)<a class="headerlink" href="#44-voiding-a-live-referral-issue-176" title="Permanent link">&para;</a></h3>
+<p>A consumer can hold only <strong>one live Select</strong> (Proceed) at a time — while one is <code>referred</code>,
+<code>instruction_accepted</code>, <code>pre_exchange</code> or <code>contracts_exchanged</code>, the platform refuses a further
+Select for that consumer (same search or, cross-search, the same email address), even to the same
+firm again. That block normally releases itself once the firm reports it can't act / wasn't
+instructed, or the matter completes or aborts. <strong>Void</strong> is the escape hatch for the cases that
+don't self-resolve — a mis-Select, a duplicate instruction, or a firm that has simply gone quiet
+and needs the founder to intervene rather than waiting indefinitely.</p>
+<ul>
+<li><strong>When to use it:</strong> a consumer is stuck unable to Select another firm because an earlier Select
+  is live but wrong (sent to the wrong firm, a genuine duplicate, or a firm that isn't responding
+  and CML has decided to release the consumer rather than keep waiting on it). This also covers a
+  <strong>conflict check recorded against an open matter</strong>: recording a <code>conflict</code> outcome always sends
+  the consumer the "pick another solicitor" email with a link back to their results, but that link
+  only leads somewhere usable when the referral was still <code>referred</code> at the time — a conflict
+  recorded once the matter has moved on (<code>instruction_accepted</code>, <code>pre_exchange</code>,
+  <code>contracts_exchanged</code>) leaves the Select block in place, so voiding is the remedy.</li>
+<li><strong>How:</strong> from the ledger row for the referral, <code>POST /api/admin/appointments/{id}/void</code> with a
+  required free-text <code>{"reason": "..."}</code>. Only a <strong>live</strong> referral can be voided — one already in a
+  released state (including an earlier void) is refused with a <code>409</code>. The reason, actor (<code>admin</code>)
+  and timestamp are recorded on the referral's audit trail, and its <code>workflow_state</code> becomes
+  <code>voided</code> — a state distinct from every firm-reported outcome, so it's never mistaken for the firm
+  having said it couldn't act.</li>
+<li><strong>Consequences — read before voiding:</strong></li>
+<li><strong>Silent.</strong> No email is sent to the consumer or the firm. If either needs telling, that's a
+    manual conversation, same as today.</li>
+<li><strong>Stops further automation</strong> for that referral — outcome chasers, contact checks, matter
+    progress requests, reminders and the exception escalation to CML all stop; nothing else is
+    triggered by the void itself.</li>
+<li><strong>Excluded from billing.</strong> A voided referral is dropped from the chargeable-events CSV export
+    (<code>GET /api/admin/metrics/ledger/export</code>) — it still appears in the JSON ledger (with
+    <code>workflow_state: "voided"</code>) so the void is visible, just not counted as chargeable.</li>
+<li><strong>Does not touch the firm's chargeable status.</strong> <code>Organisation.chargeable_since</code> is set the
+    first time any of a firm's instructions is accepted and is never unset — voiding a referral
+    that had already reached <code>instruction_accepted</code> leaves the firm chargeable on its other work.</li>
+<li>Releases the consumer to Select again immediately; it does not notify them to do so.</li>
+</ul>
+<h3 id="45-pilot-feedback-issue-119">4.5 Pilot feedback (issue #119)<a class="headerlink" href="#45-pilot-feedback-issue-119" title="Permanent link">&para;</a></h3>
+<p>The "Help improve CML" button on the journey pages (<code>/chat</code>, <code>/results/...</code>) opens a short,
+anonymous feedback form (four star ratings, an optional comment, an optional contact opt-in). It
+is a fourth, distinct feedback surface — separate from the tokenised Consumer-05/10/11 emails and
+from firm reputation reviews — and is never shown to consumers or firms.</p>
+<ul>
+<li><strong>Where to read it:</strong> <code>/admin/pilot-feedback</code> (same <code>X-Admin-Key</code> sign-in as the rest of the
+  dashboard). Filter by date, and <strong>Download CSV</strong> to export the currently filtered rows. It is
+  read-only — there is no moderation, approval or reply control, by design.</li>
+<li><strong>Summary scores</strong> appear on the main dashboard (<code>/admin</code>), inside the Funnel section — average
+  rating and response count per question for the selected period.</li>
+<li>The API is also available for scripted export:
+  <code>GET /api/admin/pilot-feedback</code> with the <code>X-Admin-Key</code> header (<code>from</code>/<code>to</code>/<code>limit</code>/<code>offset</code>
+  params), e.g.
+  <code>curl -H "X-Admin-Key: $ADMIN_API_KEY" "https://&lt;api-domain&gt;/api/admin/pilot-feedback?limit=500"</code>.</li>
+</ul>
+<p><strong>Post-pilot anonymisation (D-5/A-12).</strong> Once follow-up contact is no longer reasonably required
+(the pilot has ended and there is nothing left to action from a submission), null the contact
+columns on <code>pilot_feedback</code>, leaving the ratings and comment intact:</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">UPDATE</span><span class="w"> </span><span class="n">pilot_feedback</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">contact_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">contact_email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</span></code></pre></div>
+<p><code>contact_consent</code> is deliberately left alone here — the consent was genuinely given at the time,
+so nulling only the two detail columns is a more honest record than also resetting the flag that
+says consent was given.</p>
+<p>There is <strong>no automated purge job</strong> for this — anonymisation is a deliberate one-off operator
+action, run once, when the founder decides follow-up is no longer needed. The retention matrix
+held outside the repo (§ referenced from the privacy policy) is the founder's to update; this
+section only documents how to carry out the action once that decision is made.</p>
+<hr />
+<h2 id="5-local-development-environment">5. Local development environment<a class="headerlink" href="#5-local-development-environment" title="Permanent link">&para;</a></h2>
+<p>Guidance for keeping the local dev loop usable on the current development hardware
+(OrbStack is the only container runtime on this machine — Docker Desktop was removed). See
+issue #137 for the full investigation this section is drawn from.</p>
+<h3 id="51-orbstack-memorycpu-allocation">5.1 OrbStack memory/CPU allocation<a class="headerlink" href="#51-orbstack-memorycpu-allocation" title="Permanent link">&para;</a></h3>
+<p>The host has <strong>8GB RAM</strong>. OrbStack's own settings (menu bar icon → Settings → Resources) currently
+cap it at <strong>4GB / 2 CPUs</strong>. Leave it there rather than raising it:</p>
+<ul>
+<li>The backend suite is I/O-bound on Postgres, not CPU-bound (measured: ~155s of CPU time inside a
+  390s wall-clock run — see §5.3), so extra CPUs bought little.</li>
+<li>Every GB given to OrbStack is a GB the host OS, IDE and browser don't have. This machine already
+  runs under chronic swap pressure (§5.4); raising the container cap trades container-side speed
+  for more host-side swapping, which tends to be a net loss on an 8GB machine.</li>
+</ul>
+<p>If you do need to raise it temporarily (e.g. a one-off large import), drop it back to 4GB
+afterwards rather than leaving it raised.</p>
+<h3 id="52-stopping-containers-during-backend-test-runs">5.2 Stopping containers during backend test runs<a class="headerlink" href="#52-stopping-containers-during-backend-test-runs" title="Permanent link">&para;</a></h3>
+<p><code>uv run pytest</code> runs on the <strong>host</strong>, not in a container — it connects straight to Postgres on
+<code>localhost:5432</code> (see <code>DATABASE_URL</code> in <code>.env.example</code> and <code>backend/tests/conftest.py</code>). That means:</p>
+<ul>
+<li><strong><code>db</code> is the only container pytest needs.</strong> Keep it running.</li>
+<li><strong><code>frontend</code> is never touched by a backend test run</strong> — stop it before a test session to free
+  memory: <code>docker compose stop frontend</code>.</li>
+<li><strong><code>backend</code></strong> (the <code>uvicorn --reload</code> container) isn't used by pytest either, since tests import
+  the app in-process. It's only needed if you're manually hitting the API (e.g. via curl or the
+  frontend) at the same time. Stop it too if you're not: <code>docker compose stop backend</code>.</li>
+</ul>
+<p>Bring everything back with <code>docker compose up -d</code> when you need the full stack again.</p>
+<h3 id="53-backend-suite-baseline-re-measuring">5.3 Backend suite baseline &amp; re-measuring<a class="headerlink" href="#53-backend-suite-baseline-re-measuring" title="Permanent link">&para;</a></h3>
+<p>Recorded baseline (2026-07-20, <code>main</code> @ <code>c52a7f5</code>, full 880-test suite, this machine):</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full backend suite</td>
+<td>880 tests, <strong>386.67s (6m 27s)</strong>, exit 0</td>
+</tr>
+<tr>
+<td>CPU consumed</td>
+<td>149.3s user + 5.8s sys = 155s of 390s wall (~60% idle, waiting on Postgres)</td>
+</tr>
+</tbody>
+</table>
+<p>Current figure after the #137 fixture work (2026-07-31, same machine) — <strong>this is the number to
+compare against</strong>, not the baseline above:</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full backend suite</td>
+<td>889 tests, <strong>49.07s</strong>, exit 0</td>
+</tr>
+<tr>
+<td>Randomised order (<code>--random-order</code>)</td>
+<td>889 tests, <strong>50.37s</strong>, exit 0</td>
+</tr>
+<tr>
+<td>Per-test teardown</td>
+<td>8.5ms (was 225.7ms under <code>TRUNCATE ... CASCADE</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>To re-measure:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>stop<span class="w"> </span>frontend<span class="w"> </span>backend<span class="w">   </span><span class="c1"># optional, per §5.2 — db must stay up</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>/usr/bin/time<span class="w"> </span>-l<span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-q<span class="w">      </span><span class="c1"># macOS BSD time: reports "real" wall time + CPU time</span>
+</span></code></pre></div>
+<p>Paste the wall-clock time and the pytest summary line together. A regression shows up as wall time
+drifting up from ~49s with a comparable test count. The usual suspects are the two fixtures #137
+addressed: a teardown that goes back to <code>TRUNCATE</code>, or an engine that loses its connection pool
+(<code>backend/tests/conftest.py</code>).</p>
+<h3 id="54-hardware-note-advisory">5.4 Hardware note (advisory)<a class="headerlink" href="#54-hardware-note-advisory" title="Permanent link">&para;</a></h3>
+<p>The current development machine is a <strong>2018 MacBook Pro, i5-8279U (quad-core), 8GB RAM</strong>, running
+chronically under swap pressure (recorded 2026-07-20: 3.9GB of 5GB swap in use, OrbStack capped at
+4GB). This is below comfortable spec for a Postgres + FastAPI + Next.js + Docker stack, and it
+compounds the cost of everything else — see §5.1 and §5.3.</p>
+<p>This is advisory only — nothing in the pipeline depends on it, and #137's remedy (targeted local
+runs, full suite in CI) makes the constraint tolerable rather than requiring an upgrade. If a
+hardware refresh is on the table anyway, the main lever is <strong>RAM</strong>: 16GB+ removes the swap pressure
+that currently taxes every container, IDE and browser tab at once; a newer CPU generation helps
+build/lint/typecheck times but is a smaller factor than RAM for this particular bottleneck.</p>
+<hr />
+<h2 id="6-repository-ci-gates-deployment-wiring">6. Repository, CI gates &amp; deployment wiring<a class="headerlink" href="#6-repository-ci-gates-deployment-wiring" title="Permanent link">&para;</a></h2>
+<h3 id="61-where-the-repository-lives">6.1 Where the repository lives<a class="headerlink" href="#61-where-the-repository-lives" title="Permanent link">&para;</a></h3>
+<p>The canonical remote is <strong><code>choose-my-lawyer/cml</code></strong>. It moved there from <code>tomstagg/cml</code> on
+2026-08-03. If your local clone predates that, re-point it:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>git<span class="w"> </span>remote<span class="w"> </span>set-url<span class="w"> </span>origin<span class="w"> </span>git@github.com:choose-my-lawyer/cml.git
+</span></code></pre></div>
+<blockquote>
+<p>⚠️ GitHub serves a permanent redirect from the old path, so a stale remote keeps fetching and
+pushing <strong>without any error</strong>. A clone can look healthy for weeks while pointing at the old name.
+Check with <code>git remote -v</code> rather than assuming.</p>
+</blockquote>
+<p>The move was not cosmetic. Branch protection and rulesets are paywalled for <strong>private</strong> repositories
+on GitHub Free — both <code>PUT /repos/{o}/{r}/branches/main/protection</code> and <code>GET /repos/{o}/{r}/rulesets</code>
+return <code>403 "Upgrade to GitHub Pro or make this repository public"</code>. The <code>choose-my-lawyer</code>
+organisation is on the <strong>team</strong> plan, which lifts that restriction. A useful diagnostic: once the
+plan is sufficient, an unconfigured branch returns <code>404 "Branch not protected"</code> instead of <code>403</code>.</p>
+<p><code>tomstagg/cml-docs</code> (the GitHub Pages target in <code>.github/workflows/docs-site.yml</code>) deliberately
+stayed on the personal account. The <code>external_repository:</code> value in that workflow is correct as
+written and should not be changed to the organisation.</p>
+<h3 id="62-branch-protection-on-main">6.2 Branch protection on <code>main</code><a class="headerlink" href="#62-branch-protection-on-main" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Required checks</td>
+<td><code>Backend Tests</code>, <code>Backend Lint</code>, <code>Frontend</code></td>
+</tr>
+<tr>
+<td><code>strict</code> (branch up to date before merge)</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td>Required approving reviews</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>enforce_admins</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td>Force pushes / branch deletion</td>
+<td>blocked</td>
+</tr>
+</tbody>
+</table>
+<p>The three context strings must match the <code>name:</code> fields in <code>.github/workflows/ci.yml</code> <strong>exactly</strong> —
+they are the display names, not the job keys (<code>test</code>, <code>lint</code>, <code>frontend</code>). Rename a job's <code>name:</code>
+and its gate silently stops being required, because GitHub waits for a context that never reports.</p>
+<p>Required approvals are <code>0</code> deliberately: the pilot is a single-maintainer repository, and the
+reviewer cannot approve agent-authored PRs. The gate here is green CI, not sign-off.
+<code>enforce_admins: false</code> means an admin can still merge past a stuck check — that is the escape
+hatch, not the intended path.</p>
+<p>To re-apply after any change:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>gh<span class="w"> </span>api<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>repos/choose-my-lawyer/cml/branches/main/protection<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Accept: application/vnd.github+json"</span><span class="w"> </span>--input<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'JSON'</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="s">{</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="s">  "required_status_checks": { "strict": true,</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="s">    "contexts": ["Backend Tests", "Backend Lint", "Frontend"] },</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="s">  "enforce_admins": false,</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="s">  "required_pull_request_reviews": { "required_approving_review_count": 0 },</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="s">  "restrictions": null</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="s">}</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="s">JSON</span>
+</span></code></pre></div>
+<blockquote>
+<p>⚠️ Use <code>--input -</code> with a JSON body, not <code>-f</code> flags. <code>gh api -f</code> sends every value as a <strong>string</strong>,
+so <code>-f 'required_status_checks[strict]=true'</code> submits <code>"true"</code> and <code>-f 'restrictions=null'</code> submits
+the literal string <code>"null"</code> — both rejected with a <code>422</code> that does not explain the cause.</p>
+</blockquote>
+<h3 id="63-railway-deployment-wiring">6.3 Railway deployment wiring<a class="headerlink" href="#63-railway-deployment-wiring" title="Permanent link">&para;</a></h3>
+<p>Both application services deploy from this repository; Postgres runs from an image.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Source</th>
+<th>Root directory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>backend</code></td>
+<td><code>choose-my-lawyer/cml</code> @ <code>main</code></td>
+<td><code>/backend</code></td>
+</tr>
+<tr>
+<td><code>frontend</code></td>
+<td><code>choose-my-lawyer/cml</code> @ <code>main</code></td>
+<td><code>/frontend</code></td>
+</tr>
+</tbody>
+</table>
+<p>Railway's access comes from the <strong><code>railway-app</code> GitHub App installed on the organisation</strong>
+(<code>repository_selection: all</code>). That installation is what a repository transfer breaks: the App is
+installed per account, so it does not follow a repo to a new owner. After any future move, install
+the App on the destination account <em>first</em>, then re-point each service:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>railway<span class="w"> </span>environment<span class="w"> </span>edit<span class="w"> </span>--service-config<span class="w"> </span>backend<span class="w">  </span>source.repo<span class="w"> </span><span class="s2">"&lt;owner&gt;/cml"</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>railway<span class="w"> </span>environment<span class="w"> </span>edit<span class="w"> </span>--service-config<span class="w"> </span>frontend<span class="w"> </span>source.repo<span class="w"> </span><span class="s2">"&lt;owner&gt;/cml"</span>
+</span></code></pre></div>
+<blockquote>
+<p>⚠️ <strong>Changing <code>source.repo</code> does not trigger a deployment.</strong> Railway builds on push webhooks;
+<code>source.repo</code> only records where the <em>next</em> build pulls from. After re-pointing, the service looks
+"stuck" on the old deployment when in fact nothing has happened to deploy. Before assuming
+breakage, compare <code>git rev-parse origin/main</code> against the running deployment's <code>meta.commitHash</code>
+(<code>railway deployment list --service &lt;svc&gt; --json</code>) — if they match, the service is in sync.
+This differs from <code>deploy.*</code> patches such as <code>multiRegionConfig</code>, which do redeploy on commit.</p>
+<p>⚠️ <strong><code>railway redeploy</code> does not prove repository access.</strong> It reuses the existing built image —
+the new deployment carries the same <code>meta.imageDigest</code> and inherits the previous deployment's
+<code>meta.repo</code> string, so it never contacts GitHub. It verifies that the service restarts and passes
+its healthcheck, nothing more. The only real test of the source path is a build triggered by a
+commit.</p>
+</blockquote>
+<h3 id="64-what-survives-a-repository-transfer">6.4 What survives a repository transfer<a class="headerlink" href="#64-what-survives-a-repository-transfer" title="Permanent link">&para;</a></h3>
+<p>Recorded from the 2026-08-03 move, for whenever this is done again:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Issues, PRs, branches, Actions run history</td>
+<td>move with the repo</td>
+</tr>
+<tr>
+<td>Actions secrets (<code>CML_DOCS_DEPLOY_KEY</code>)</td>
+<td><strong>survived</strong> — verify with <code>gh secret list</code>, do not assume</td>
+</tr>
+<tr>
+<td>Railway GitHub App installation</td>
+<td>does <strong>not</strong> follow; reinstall on the new owner</td>
+</tr>
+<tr>
+<td>Railway <code>source.repo</code></td>
+<td>does <strong>not</strong> follow; patch each service</td>
+</tr>
+<tr>
+<td>Project board (<code>users/tomstagg/projects/4</code>)</td>
+<td>unaffected — cards reference issues by node ID</td>
+</tr>
+<tr>
+<td>Local <code>origin</code> remote</td>
+<td>keeps working via redirect; update it explicitly</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <code>CML_DOCS_DEPLOY_KEY</code> survived, but its private half exists <strong>nowhere else</strong> — not on disk, not
+in the repo, and GitHub secrets are write-only. If it is ever lost it can only be regenerated:
+new keypair, public half onto <code>tomstagg/cml-docs</code> deploy keys, private half back as the secret.</p>
+</blockquote>
+<p>One organisation-level setting is worth checking after a move, because it is invisible from the
+repository: <em>Org Settings → Actions → General</em> must allow third-party actions, since CI uses
+<code>astral-sh/setup-uv</code> and the docs workflow uses <code>peaceiris/actions-gh-pages</code>. Reading it via the API
+needs the <code>admin:org</code> scope (<code>gh auth refresh -h github.com -s admin:org</code>); the repository-level
+<code>gh api repos/choose-my-lawyer/cml/actions/permissions</code> is a weaker but usually sufficient proxy.</p>
+<hr />
+<h2 id="7-domains-dns-apex-www">7. Domains &amp; DNS (apex → www)<a class="headerlink" href="#7-domains-dns-apex-www" title="Permanent link">&para;</a></h2>
+<p><code>www.choosemylawyer.ai</code> is the canonical host (issue #68) and is hardcoded as such in
+<code>app/layout.tsx</code>, <code>app/robots.ts</code> and <code>app/sitemap.ts</code>.</p>
+<h3 id="71-current-state">7.1 Current state<a class="headerlink" href="#71-current-state" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Record</th>
+<th>Points at</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>choosemylawyer.ai</code> (apex)</td>
+<td><code>A</code> <code>15.197.225.128</code>, <code>3.33.251.168</code></td>
+<td>GoDaddy domain forwarding</td>
+</tr>
+<tr>
+<td><code>www.choosemylawyer.ai</code></td>
+<td><code>CNAME</code></td>
+<td><code>eqofjh7n.up.railway.app</code> (Railway frontend)</td>
+</tr>
+</tbody>
+</table>
+<p>Nameservers are GoDaddy (<code>ns01/ns02.domaincontrol.com</code>).</p>
+<p>GoDaddy's forwarding redirects <strong>the root path only</strong> and strips everything else, so every deep
+apex URL 404s — <code>choosemylawyer.ai/conveyancing</code>, <code>/robots.txt</code>, <code>/sitemap.xml</code>. Inbound links
+using the apex form dead-end and pass no link equity.</p>
+<h3 id="72-the-application-side-issue-146">7.2 The application side (issue #146)<a class="headerlink" href="#72-the-application-side-issue-146" title="Permanent link">&para;</a></h3>
+<p><code>frontend/middleware.ts</code> 308-redirects any apex request to the same path and query on www. It keys
+off <code>host</code> (Railway's proxy forwards the original custom domain in it), falling back to
+<code>x-forwarded-host</code> only when <code>host</code> is absent — trusting a client-supplied header first could
+silently disable the redirect in production.</p>
+<p><strong>It only takes effect once the apex actually resolves to the Railway frontend service.</strong> Until the
+DNS below changes, the middleware never sees the request and the 404s persist.</p>
+<h3 id="73-operator-steps-pointing-the-apex-at-railway">7.3 Operator steps — pointing the apex at Railway<a class="headerlink" href="#73-operator-steps-pointing-the-apex-at-railway" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>⚠️ <strong>There is no "keep DNS at GoDaddy" option.</strong> Railway issues a <code>CNAME</code> (plus a verification
+<code>TXT</code>) for a root domain and never <code>A</code> records, and GoDaddy supports neither CNAME flattening nor
+dynamic ALIAS — Railway lists it by name among the providers that don't. So pointing the apex at
+Railway <em>requires</em> moving the whole zone to a provider that does (step 2). Budget for a DNS
+migration including email, not a two-record edit.</p>
+</blockquote>
+<p><strong>Step 1 — add the domain in Railway.</strong> Dashboard → <code>cml</code> project → <strong>frontend</strong> service →
+<em>Settings → Networking → Custom Domain</em> → add <code>choosemylawyer.ai</code>, or:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>railway<span class="w"> </span>domain<span class="w"> </span>choosemylawyer.ai<span class="w"> </span>--service<span class="w"> </span>frontend
+</span></code></pre></div>
+<p>Railway returns <strong>both</strong> records, and both are required — the CNAME alone leaves the certificate
+stuck on <code>VALIDATING_OWNERSHIP</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Type</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@</code></td>
+<td><code>CNAME</code></td>
+<td><code>88ujwzag.up.railway.app</code></td>
+</tr>
+<tr>
+<td><code>_railway-verify</code></td>
+<td><code>TXT</code></td>
+<td><code>railway-verify=&lt;verification-token&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>Re-read them with <code>railway domain status &lt;id&gt;</code> rather than trusting the pair above: removing and
+re-adding the domain mints a fresh target and token.</p>
+<p><strong>Step 2 — move DNS to a provider with apex CNAME flattening (e.g. Cloudflare).</strong></p>
+<blockquote>
+<p>⚠️ <strong>This moves <em>all</em> DNS for the domain, including email.</strong> Getting it wrong breaks inbound mail
+and outbound deliverability — including the transactional email hardened in issue #155. Migrate
+every record below before changing nameservers, then verify.</p>
+</blockquote>
+<p>Records that must be carried across (captured 03.08.26 — <strong>re-enumerate the live zone before
+migrating</strong>, see §7.5; do not trust this table as current):</p>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Type</th>
+<th>Value</th>
+<th>Breaks if dropped</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@</code></td>
+<td><code>MX</code></td>
+<td><code>0 choosemylawyer-ai.mail.protection.outlook.com</code></td>
+<td>Inbound mail</td>
+</tr>
+<tr>
+<td><code>@</code></td>
+<td><code>TXT</code></td>
+<td><code>v=spf1 include:spf.protection.outlook.com -all</code></td>
+<td>Outbound deliverability</td>
+</tr>
+<tr>
+<td><code>@</code></td>
+<td><code>TXT</code></td>
+<td><code>v=verifydomain MS=2346795</code></td>
+<td>M365 domain ownership</td>
+</tr>
+<tr>
+<td><code>@</code></td>
+<td><code>TXT</code></td>
+<td><code>google-site-verification=gfIZcDCO_n0H3hbVWZ-N9j5Ld_B_4GiaUy86PTlENdw</code></td>
+<td>Search Console</td>
+</tr>
+<tr>
+<td><code>_dmarc</code></td>
+<td><code>TXT</code></td>
+<td><code>v=DMARC1; p=quarantine; adkim=r; aspf=r; rua=mailto:&lt;dmarc-rua-mailbox&gt;;</code></td>
+<td>DMARC enforcement</td>
+</tr>
+<tr>
+<td><code>www</code></td>
+<td><code>CNAME</code></td>
+<td><code>eqofjh7n.up.railway.app</code></td>
+<td><strong>The site</strong></td>
+</tr>
+<tr>
+<td><code>api</code></td>
+<td><code>CNAME</code></td>
+<td><code>3yknhbp0.up.railway.app</code></td>
+<td><strong>The site</strong> — the frontend calls this host (it is in the CSP <code>connect-src</code>)</td>
+</tr>
+<tr>
+<td><code>mail</code></td>
+<td><code>CNAME</code></td>
+<td><code>sparkpostmail.com</code></td>
+<td>All transactional email</td>
+</tr>
+<tr>
+<td><code>autodiscover</code></td>
+<td><code>CNAME</code></td>
+<td><code>autodiscover.outlook.com</code></td>
+<td>Outlook / mobile mail-client setup</td>
+</tr>
+</tbody>
+</table>
+<p><code>_domainconnect</code> is GoDaddy-specific and is not carried across.</p>
+<blockquote>
+<p><code>api</code> is easy to overlook because nothing about the <em>domain</em> move suggests it, but it is the
+production backend — dropping it takes the whole site down, not just email.</p>
+</blockquote>
+<p><strong>SparkPost needs only the single <code>mail</code> CNAME.</strong> Do not hand-copy DKIM TXT records under <code>mail.</code>:
+it is a bare CNAME to <code>sparkpostmail.com</code>, and SPF, DKIM and bounce all resolve <em>through</em> it
+(<code>scph*._domainkey.mail.choosemylawyer.ai</code> does not exist in this zone). A TXT record cannot
+coexist with a CNAME at the same name. After the move, re-verify the sending and bounce domains in
+the SparkPost console rather than reconstructing records by hand.</p>
+<p>Then add <strong>both</strong> step-1 records at the new provider: <code>@</code> as a CNAME to the Railway target (relying
+on the provider's flattening) <strong>and</strong> the <code>_railway-verify</code> TXT. On Cloudflare, set the apex CNAME
+to <strong>DNS only</strong> (grey cloud) — proxying it terminates TLS at Cloudflare and Railway's certificate
+never validates.</p>
+<p>The GoDaddy apex forwarding needs no separate step: it <em>is</em> the two apex <code>A</code> records in GoDaddy's
+zone (§7.1) and only functions while GoDaddy is authoritative, so moving the nameservers retires it.
+Tidy it up in <em>My Products → Domains → choosemylawyer.ai → Forwarding</em> afterwards, but it cannot
+override Cloudflare. (Were the zone ever moved back to GoDaddy, it would need deleting explicitly —
+it is what strips the path today.)</p>
+<p>Then wait for Railway to show the apex certificate as <em>Issued</em>.</p>
+<h3 id="74-verification">7.4 Verification<a class="headerlink" href="#74-verification" title="Permanent link">&para;</a></h3>
+<p>After DNS propagates:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">for</span><span class="w"> </span>u<span class="w"> </span><span class="k">in</span><span class="w"> </span>https://choosemylawyer.ai/<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">         </span>https://choosemylawyer.ai/conveyancing<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">         </span>https://choosemylawyer.ai/robots.txt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">         </span><span class="s2">"https://choosemylawyer.ai/results?x=1"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">         </span>http://choosemylawyer.ai/conveyancing<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"%-52s -&gt; "</span><span class="w"> </span><span class="s2">"</span><span class="nv">$u</span><span class="s2">"</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">"%{http_code} %{redirect_url}\n"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$u</span><span class="s2">"</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="k">done</span>
+</span></code></pre></div>
+<p>Expected: every line a <code>301</code>/<code>308</code> to the same path and query on <code>https://www.choosemylawyer.ai</code>.
+Then confirm www still serves directly (<code>curl -s -o /dev/null -w "%{http_code}"
+https://www.choosemylawyer.ai/conveyancing</code> → <code>200</code>).</p>
+<p>If step 2B was taken, also verify email before considering the change done: send a test through
+§3, confirm it arrives, and check the SparkPost console still reports the sending domain and
+bounce domain as verified.</p>
+<h3 id="75-re-enumerating-the-zone-before-a-migration">7.5 Re-enumerating the zone before a migration<a class="headerlink" href="#75-re-enumerating-the-zone-before-a-migration" title="Permanent link">&para;</a></h3>
+<p>The table in §7.3 is a snapshot, and a migration checklist that is <em>nearly</em> right is worse than
+none — it reads as authoritative. Enumerate the live zone yourself first:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">for</span><span class="w"> </span>h<span class="w"> </span><span class="k">in</span><span class="w"> </span>@<span class="w"> </span>www<span class="w"> </span>api<span class="w"> </span>mail<span class="w"> </span>autodiscover<span class="w"> </span>admin<span class="w"> </span>app<span class="w"> </span>staging<span class="w"> </span>cdn<span class="w"> </span>blog<span class="w"> </span>webmail<span class="w"> </span>smtp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">         </span>lyncdiscover<span class="w"> </span>sip<span class="w"> </span>msoid<span class="w"> </span>enterpriseregistration<span class="w"> </span>enterpriseenrollment<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">         </span>selector1._domainkey<span class="w"> </span>selector2._domainkey<span class="w"> </span>_dmarc<span class="w"> </span>_domainconnect<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">  </span><span class="nv">n</span><span class="o">=</span><span class="k">$(</span><span class="o">[</span><span class="w"> </span><span class="s2">"</span><span class="nv">$h</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"@"</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>choosemylawyer.ai<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"</span><span class="nv">$h</span><span class="s2">.choosemylawyer.ai"</span><span class="k">)</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">  </span><span class="nv">v</span><span class="o">=</span><span class="k">$(</span>dig<span class="w"> </span>+short<span class="w"> </span>CNAME<span class="w"> </span><span class="s2">"</span><span class="nv">$n</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span>dig<span class="w"> </span>+short<span class="w"> </span>A<span class="w"> </span><span class="s2">"</span><span class="nv">$n</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span>dig<span class="w"> </span>+short<span class="w"> </span>MX<span class="w"> </span><span class="s2">"</span><span class="nv">$n</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span>dig<span class="w"> </span>+short<span class="w"> </span>TXT<span class="w"> </span><span class="s2">"</span><span class="nv">$n</span><span class="s2">"</span><span class="k">)</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">  </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="nv">$v</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"%-34s %s\n"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$h</span><span class="s2">"</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$v</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">'\n'</span><span class="w"> </span><span class="s1">' '</span><span class="k">)</span><span class="s2">"</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="k">done</span>
+</span></code></pre></div>
+<p>Anything that answers and is not GoDaddy-specific has to exist at the new provider <strong>before</strong> the
+nameservers change. Note that records resolving <em>through</em> a CNAME (SparkPost's SPF/DKIM under
+<code>mail.</code>) belong to the target zone, not ours — carry the CNAME, not its answers.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../email-workflow-diagram/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Email workflow">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Email workflow
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Choose My Lawyer
+
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6970bfe9.min.js"></script>
+      
+    
+  </body>
+</html>

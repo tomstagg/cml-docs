@@ -1,0 +1,3855 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="As-built technical documentation for the Choose My Lawyer legal comparison platform: system design, ranking methodology, email workflow, and operations.">
+      
+      
+        <meta name="author" content="Choose My Lawyer">
+      
+      
+        <link rel="canonical" href="https://tomstagg.github.io/cml-docs/system-design/">
+      
+      
+        <link rel="prev" href="./..">
+      
+      
+        <link rel="next" href="../ranking-algorithm-worked-examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.59">
+    
+    
+      
+        <title>System design - Choose My Lawyer — Technical Documentation</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cml-system-design-as-built" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-header__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Choose My Lawyer — Technical Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              System design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-nav__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Choose My Lawyer — Technical Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Overview
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  System design
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  System design
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architecture-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Architecture &amp; topology
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-backend-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Backend structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-frontend-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Frontend structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-model-data-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Data model &amp; data catalogue
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Data model &amp; data catalogue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Relationships
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organisations-the-firm-record-one-per-firm-identity-owned-by-the-master-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>organisations</code> — the firm record (one per firm; identity owned by the Master Export)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#offices-firm-locations-one-primary-zero-or-more-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>offices</code> — firm locations (one primary + zero-or-more branches)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm_users-portal-logins" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>firm_users</code> — portal logins
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price_cards-firm-pricing-one-per-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>price_cards</code> — firm pricing (one per firm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price_card_revisions-portal-pricing-edit-history-issue-63" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>price_card_revisions</code> — portal pricing edit history (issue #63)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat_sessions-consumer-intake-session-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>chat_sessions</code> — consumer intake + session state
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appointments-proceed-instruct-callback-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>appointments</code> — Proceed (instruct) + Callback requests
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interest_registrations-interest-in-non-participating-firms" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>interest_registrations</code> — interest in non-participating firms
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reviews" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>reviews</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumer_reviews-consumer-1011-post-matter-review-capture-issue-131" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>consumer_reviews</code> — Consumer-10/11 post-matter review capture (issue #131)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complaints_summary-regulatory_summary-pre-computed-factor-inputs-one-per-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>complaints_summary</code> / <code>regulatory_summary</code> — pre-computed factor inputs (one per firm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analytics_events-first-party-funnel-mirror-standalone" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>analytics_events</code> — first-party funnel mirror (standalone)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_ranking_events-durable-per-search-ranking-positions-issue-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>search_ranking_events</code> — durable per-search ranking positions (issue #120)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-pricing-engine-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Pricing engine (as-built)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Pricing engine (as-built)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constants-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Constants (as-built)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formula" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Formula
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-ranking-engine-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Ranking engine (as-built)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Ranking engine (as-built)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#factor-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Factor scoring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scorecards-scorecardpyscorecards-integer-weights-summing-to-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scorecards (<code>scorecard.py::SCORECARDS</code>, integer weights summing to 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequencing-eligibility-searchpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sequencing &amp; eligibility (<code>search.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-google-lead-generation-google-ads-click-id-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Google lead generation (Google Ads click-ID attribution)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Google lead generation (Google Ads click-ID attribution)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-captured" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What is captured
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-it-is-stored-three-stages-frontendlibclickidsts-db" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where it is stored (three stages — <code>frontend/lib/clickIds.ts</code> → DB)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lead-export-for-the-agency" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lead export for the agency
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importing-into-google-ads-agency" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Importing into Google Ads (agency)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privacy-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Privacy position
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-google-places-reviews-sync-retired" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Legacy — Google Places reviews sync (retired)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-analytics-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. Analytics &amp; tracking
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Analytics &amp; tracking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#operations-dashboard-data-metrics-issues-74-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Operations dashboard &amp; data metrics (issues #74, #120)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dns-email-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. DNS &amp; email configuration
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-email-workflow-scheduler-issues-949697155" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. Email workflow &amp; scheduler (issues #94/#96/#97/#155)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Email workflow &amp; scheduler (issues #94&#x2f;#96&#x2f;#97&#x2f;#155)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-states-appointmentsworkflow_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Workflow states (<code>appointments.workflow_state</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engagement-log-engagement-log-issue-161" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Engagement Log (<code>/engagement-log</code>, issue #161)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-inventory-template-keys-as-written-to-email_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Email inventory (template keys as written to <code>email_events</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#action-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Action tokens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduler-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scheduler cycle
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send-retry-failure-classification-and-alerting-issue-155" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Send retry, failure classification and alerting (issue #155)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-event-log-admin-visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Email-event log &amp; admin visibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-deployment-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        12. Deployment &amp; environment variables
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Deployment &amp; environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#operational-gotchas-lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Operational gotchas (lessons learned)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-supporting-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        13. Supporting documents
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Supporting documents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#known-divergences-as-built-vs-older-docs-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Known divergences (as-built vs older docs / spec)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ranking-algorithm-worked-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Ranking — worked examples
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email-workflow-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Email workflow
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Admin guide
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architecture-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Architecture &amp; topology
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-backend-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Backend structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-frontend-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Frontend structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-model-data-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Data model &amp; data catalogue
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Data model &amp; data catalogue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Relationships
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organisations-the-firm-record-one-per-firm-identity-owned-by-the-master-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>organisations</code> — the firm record (one per firm; identity owned by the Master Export)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#offices-firm-locations-one-primary-zero-or-more-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>offices</code> — firm locations (one primary + zero-or-more branches)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm_users-portal-logins" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>firm_users</code> — portal logins
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price_cards-firm-pricing-one-per-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>price_cards</code> — firm pricing (one per firm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price_card_revisions-portal-pricing-edit-history-issue-63" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>price_card_revisions</code> — portal pricing edit history (issue #63)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat_sessions-consumer-intake-session-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>chat_sessions</code> — consumer intake + session state
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appointments-proceed-instruct-callback-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>appointments</code> — Proceed (instruct) + Callback requests
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interest_registrations-interest-in-non-participating-firms" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>interest_registrations</code> — interest in non-participating firms
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reviews" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>reviews</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumer_reviews-consumer-1011-post-matter-review-capture-issue-131" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>consumer_reviews</code> — Consumer-10/11 post-matter review capture (issue #131)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complaints_summary-regulatory_summary-pre-computed-factor-inputs-one-per-firm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>complaints_summary</code> / <code>regulatory_summary</code> — pre-computed factor inputs (one per firm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analytics_events-first-party-funnel-mirror-standalone" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>analytics_events</code> — first-party funnel mirror (standalone)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_ranking_events-durable-per-search-ranking-positions-issue-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>search_ranking_events</code> — durable per-search ranking positions (issue #120)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-pricing-engine-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Pricing engine (as-built)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Pricing engine (as-built)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constants-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Constants (as-built)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formula" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Formula
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-ranking-engine-as-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Ranking engine (as-built)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Ranking engine (as-built)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#factor-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Factor scoring
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scorecards-scorecardpyscorecards-integer-weights-summing-to-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scorecards (<code>scorecard.py::SCORECARDS</code>, integer weights summing to 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequencing-eligibility-searchpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sequencing &amp; eligibility (<code>search.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-google-lead-generation-google-ads-click-id-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Google lead generation (Google Ads click-ID attribution)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Google lead generation (Google Ads click-ID attribution)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-captured" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What is captured
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-it-is-stored-three-stages-frontendlibclickidsts-db" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where it is stored (three stages — <code>frontend/lib/clickIds.ts</code> → DB)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lead-export-for-the-agency" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Lead export for the agency
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importing-into-google-ads-agency" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Importing into Google Ads (agency)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privacy-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Privacy position
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-google-places-reviews-sync-retired" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Legacy — Google Places reviews sync (retired)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-analytics-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. Analytics &amp; tracking
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Analytics &amp; tracking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#operations-dashboard-data-metrics-issues-74-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Operations dashboard &amp; data metrics (issues #74, #120)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dns-email-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. DNS &amp; email configuration
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-email-workflow-scheduler-issues-949697155" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. Email workflow &amp; scheduler (issues #94/#96/#97/#155)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Email workflow &amp; scheduler (issues #94&#x2f;#96&#x2f;#97&#x2f;#155)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-states-appointmentsworkflow_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Workflow states (<code>appointments.workflow_state</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engagement-log-engagement-log-issue-161" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Engagement Log (<code>/engagement-log</code>, issue #161)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-inventory-template-keys-as-written-to-email_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Email inventory (template keys as written to <code>email_events</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#action-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Action tokens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduler-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scheduler cycle
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send-retry-failure-classification-and-alerting-issue-155" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Send retry, failure classification and alerting (issue #155)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-event-log-admin-visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Email-event log &amp; admin visibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-deployment-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        12. Deployment &amp; environment variables
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Deployment &amp; environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#operational-gotchas-lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Operational gotchas (lessons learned)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-supporting-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        13. Supporting documents
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Supporting documents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#known-divergences-as-built-vs-older-docs-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Known divergences (as-built vs older docs / spec)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="cml-system-design-as-built">CML System Design (as-built)<a class="headerlink" href="#cml-system-design-as-built" title="Permanent link">&para;</a></h1>
+<p>The consolidated technical design record for <strong>Choose My Lawyer (CML)</strong>. This describes the system
+<strong>as it is actually built</strong> — derived from the code, not from older plans. Where the running code
+diverges from the functional spec (<code>requirements.md</code>, incl. <strong>Annex One</strong>) or from older docs, the
+divergence is called out explicitly.</p>
+<p><strong>Document roles</strong>
+- <strong>This file</strong> — architecture, data model, engines, integrations (the "how it works" reference).
+- <code>docs/admin-guide.md</code> — operations runbook (enrolment, reseeds, email testing).
+- <code>docs/requirements.md</code> (<strong>Annex One</strong>) — canonical functional spec + the source-of-truth numbers
+  for ranking/pricing. Where a constant matters, this doc states the <strong>as-built</strong> value and points to
+  the Annex One section; it does not silently re-author Annex One.
+- <code>ITERATIONS.md</code> — forward-looking backlog (not covered here).</p>
+<blockquote>
+<p><strong>MVP scope:</strong> residential conveyancing only · West Midlands Combined Authority (WMCA) · firms
+manually enrolled and priced · ~90-day PPC-driven pilot. Goal is commercial validation.</p>
+</blockquote>
+<hr />
+<h2 id="1-overview">1. Overview<a class="headerlink" href="#1-overview" title="Permanent link">&para;</a></h2>
+<p>Consumers complete a short pathway-aware intake (Buying / Selling / Both) and receive a ranked list of
+solicitors with a calculated <strong>Total Effective Price</strong>. The full in-scope WMCA market is ranked; the
+<strong>top-5 contactable</strong> (enrolled, active) firms get <strong>Proceed</strong> / <strong>Request a callback</strong> actions. Firm
+data — identity, pricing, and pre-computed reputation/complaints/regulatory scores — is curated in the
+<strong>Master Export workbook</strong> and loaded by a single importer.</p>
+<hr />
+<h2 id="2-architecture-topology">2. Architecture &amp; topology<a class="headerlink" href="#2-architecture-topology" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Browser ──► Next.js 15 (App Router)  ──► FastAPI (async)  ──► PostgreSQL 16
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                 frontend/                   backend/             Railway PG
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                 :3000                        :8000               :5432
+</span></code></pre></div>
+<ul>
+<li>Frontend proxies <code>/api/*</code> to the backend via <code>next.config.ts</code> rewrites.</li>
+<li>Backend: async SQLAlchemy + asyncpg.</li>
+<li><strong>APScheduler runs in-process</strong> with FastAPI (no separate worker/queue) — wired into the lifespan in
+  <code>app/main.py</code> via <code>app/tasks/scheduler.py</code>.</li>
+<li>Hosting: two Railway services (<code>backend</code>, <code>frontend</code>) from their Dockerfiles + a managed Postgres
+  add-on. Local dev via <code>docker-compose</code>.</li>
+</ul>
+<hr />
+<h2 id="3-backend-structure">3. Backend structure<a class="headerlink" href="#3-backend-structure" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/main.py</code></td>
+<td>Entrypoint, middleware, router mounts, APScheduler lifecycle</td>
+</tr>
+<tr>
+<td><code>app/config.py</code></td>
+<td>Pydantic settings (all env vars)</td>
+</tr>
+<tr>
+<td><code>app/database.py</code></td>
+<td>Async engine, <code>get_db</code> session dependency</td>
+</tr>
+<tr>
+<td><code>app/dependencies.py</code></td>
+<td><code>get_current_user</code> JWT auth dependency</td>
+</tr>
+<tr>
+<td><code>app/models/</code></td>
+<td>SQLAlchemy ORM models (§5)</td>
+</tr>
+<tr>
+<td><code>app/schemas/</code></td>
+<td>Pydantic request/response schemas</td>
+</tr>
+<tr>
+<td><code>app/services/</code></td>
+<td>Business logic (below)</td>
+</tr>
+<tr>
+<td><code>app/tasks/scheduler.py</code></td>
+<td>APScheduler entrypoint (started by FastAPI lifespan)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Services</strong></p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auth.py</code></td>
+<td>bcrypt password hashing, JWT sign/verify (HS256, 8h default)</td>
+</tr>
+<tr>
+<td><code>chat.py</code></td>
+<td>Pathway-aware conveyancing intake; flattens intake answers into pricing flags (<code>get_intake_flags</code>)</td>
+</tr>
+<tr>
+<td><code>price_calc.py</code></td>
+<td>Total Effective Price from JSONB pricing + intake flags (§6)</td>
+</tr>
+<tr>
+<td><code>ranking.py</code></td>
+<td>Pure factor scorers (§7)</td>
+</tr>
+<tr>
+<td><code>scorecard.py</code></td>
+<td>Weight tables + tie-broken <code>apply()</code> (§7)</td>
+</tr>
+<tr>
+<td><code>search.py</code></td>
+<td>Full-market ranking + top-5 contactable extraction (§7)</td>
+</tr>
+<tr>
+<td><code>geocoding.py</code></td>
+<td>postcodes.io postcode → lat/lng (free, no API key)</td>
+</tr>
+<tr>
+<td><code>email.py</code></td>
+<td>SparkPost transactional email; "in the user's name" senders + audit BCC (§10–11)</td>
+</tr>
+<tr>
+<td><code>action_tokens.py</code></td>
+<td>HMAC-signed action tokens for workflow email links (§11; supersedes the retired <code>followup_tokens.py</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>API namespaces</strong>
+- <code>GET/POST /api/public/*</code> — unauthenticated (chat, search, appointments, callbacks, reviews, events, address lookup)
+- <code>POST/GET/PATCH /api/firm/*</code> — JWT Bearer (firm dashboard, pricing, reviews)
+- <code>GET/POST /api/admin/*</code> — internal; every route requires the <code>X-Admin-Key</code> header (<code>ADMIN_API_KEY</code>)</p>
+<p><strong>Address lookup proxy</strong> (<code>app/api/public/address_lookup.py</code>, #124/#127):
+<code>GET /api/public/address-lookup/{postcode}</code> returns <code>{"available": bool, "addresses": […]}</code> for the
+Select/Callback journey forms — a premise shortlist that auto-fills the address lines, with a manual-entry
+escape hatch (<code>components/journey/AddressFields.tsx</code>). Proxies <strong>Ideal Postcodes</strong>
+(<code>api.ideal-postcodes.co.uk/v1/postcodes/{postcode}</code>; #127 replaced the original provider, which ceased
+operating in February 2026) so the API key (<code>ADDRESS_LOOKUP_API_KEY</code>) stays server-side. Rate-limited 30/min per IP; never surfaces a 5xx —
+no key, an implausible postcode shape, a timeout, a non-2xx (including postcode-not-found, whose
+"did you mean" suggestions are ignored, #127 D-3) or a malformed body all degrade to
+<code>{"available": false, "addresses": []}</code> and the form falls back to manual entry. First results page only
+(#127 D-5); spend protection is dashboard-side (#127 D-4). Distinct from the postcodes.io validity
+tick and geocoding, which are free and keyless.</p>
+<hr />
+<h2 id="4-frontend-structure">4. Frontend structure<a class="headerlink" href="#4-frontend-structure" title="Permanent link">&para;</a></h2>
+<p><strong>Stack:</strong> Next.js 15 App Router · TypeScript · Tailwind · React Hook Form · Radix UI · Sonner.</p>
+<table>
+<thead>
+<tr>
+<th>Route group</th>
+<th>Routes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(marketing)</code></td>
+<td><code>/</code>, <code>/conveyancing</code>, <code>/for-firms</code>, <code>/trust-centre</code>, <code>/contact</code>, <code>/privacy</code>, <code>/terms</code>, <code>/cookies</code></td>
+<td>Public marketing ("How it works" is a section of <code>/</code>, not a standalone route)</td>
+</tr>
+<tr>
+<td><code>(public)</code></td>
+<td><code>/chat</code>, <code>/results/[sessionId]</code> (+ <code>/callbacks</code>, <code>/select</code> sub-routes), <code>/review/[token]</code>, plus the workflow response surfaces <code>/firm-report</code>, <code>/matter-report</code>, <code>/update-progress</code>, <code>/contact-check</code>, <code>/feedback</code>, <code>/contact-cml</code>, <code>/return</code> (each <code>/[token]</code>, §11)</td>
+<td>Consumer flow</td>
+</tr>
+<tr>
+<td><code>(firm)</code></td>
+<td><code>/login</code>, <code>/forgot-password</code>, <code>/reset-password/[token]</code>, <code>/enroll/[token]</code>, <code>/dashboard</code>, <code>/engagement-log</code>, <code>/profile</code>, <code>/pricing</code>, <code>/reviews</code>, <code>/analytics</code></td>
+<td>Firm portal (JWT)</td>
+</tr>
+<tr>
+<td><code>(admin)</code></td>
+<td><code>/admin</code>, <code>/admin/email-log</code></td>
+<td>Internal admin (metrics dashboard + email log)</td>
+</tr>
+</tbody>
+</table>
+<p>The Trust Centre (<code>/trust-centre</code> + <code>/trust-centre/[slug]</code>) was called the Transparency Centre until
+issue #186; <code>next.config.ts</code> <code>redirects()</code> permanently redirects <code>/transparency-centre</code> and
+<code>/transparency-centre/:slug</code> to the new paths, so links already published and emailed still resolve.</p>
+<p><strong>Conventions:</strong> all interactive components are <code>"use client"</code>; API calls go through <code>lib/api.ts</code> only;
+<code>cn()</code> for class merging; <code>sonner</code> for toasts; forms via react-hook-form. Brand palette and component
+guidance: <code>docs/requirements.md §4.1</code> + the <strong>visual design system</strong> in <code>docs/design/</code>.</p>
+<hr />
+<h2 id="5-data-model-data-catalogue">5. Data model &amp; data catalogue<a class="headerlink" href="#5-data-model-data-catalogue" title="Permanent link">&para;</a></h2>
+<p>Engine: <strong>PostgreSQL 16</strong>, UUID primary keys, async asyncpg driver. Schema is a single Alembic file
+<code>backend/alembic/versions/0001_initial_schema.py</code> (pre-launch policy: edit <code>0001</code> in place + drop/recreate;
+no new revisions until go-live). The full column catalogue is §5 below — this document is the single
+source of truth for the schema (alongside the <code>0001</code> migration and the ORM models).</p>
+<h3 id="relationships">Relationships<a class="headerlink" href="#relationships" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>organisations
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  ├─ offices              (1‑to‑many, cascade)        is_primary, office_type, lat/lng
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  ├─ firm_users           (1‑to‑many, cascade)        portal logins
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  ├─ price_card           (1‑to‑1,   cascade)         JSONB pricing
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  ├─ complaints_summary   (1‑to‑1,   cascade)         pre-computed score
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  ├─ regulatory_summary   (1‑to‑1,   cascade)         pre-computed score
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  ├─ appointments         (1‑to‑many, cascade)
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  └─ reviews              (1‑to‑many, cascade)         source: cml / google
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>chat_sessions
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  └─ appointments         (1‑to‑many, FK SET NULL on session delete)
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>       └─ consumer_reviews (1‑to‑1, cascade)      Consumer-10/11 capture-only review (§11)
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>analytics_events          (standalone — funnel + Meta Pixel mirror)
+</span></code></pre></div>
+<p>Enums: <code>office_type{BRANCH,HO}</code>, <code>price_type{estimated,verified,no_data}</code>,
+<code>appointment_type{select,callback}</code>, <code>review_source{cml,google}</code>, <code>firm_user_role{admin,staff}</code>,
+plus the workflow enums <code>workflow_state</code>, <code>workflow_channel</code> and <code>email_event_status</code> (§11).</p>
+<blockquote>
+<p>Most tables have <code>id UUID PK</code> and (most) <code>created_at</code>/<code>updated_at</code> timestamptz defaulting to <code>now()</code>
+— the append-only <code>workflow_events</code>, <code>email_events</code> and <code>cml_feedback</code> use BigInteger identity PKs.
+Those are omitted from the per-column tables below for brevity.</p>
+</blockquote>
+<h3 id="organisations-the-firm-record-one-per-firm-identity-owned-by-the-master-export"><code>organisations</code> — the firm record (one per firm; identity owned by the Master Export)<a class="headerlink" href="#organisations-the-firm-record-one-per-firm-identity-owned-by-the-master-export" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cml_firm_id</code></td>
+<td>str(10)</td>
+<td>no</td>
+<td>UNIQUE, idx</td>
+<td>Spreadsheet-owned firm id (e.g. <code>CML-001</code>)</td>
+</tr>
+<tr>
+<td><code>sra_number</code></td>
+<td>str(20)</td>
+<td>no</td>
+<td>UNIQUE, idx</td>
+<td>SRA regulator identity</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td>Legal entity name</td>
+</tr>
+<tr>
+<td><code>trading_name</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td>Public display name (used in results)</td>
+</tr>
+<tr>
+<td><code>phone</code></td>
+<td>str(30)</td>
+<td>yes</td>
+<td></td>
+<td>Firm contact phone</td>
+</tr>
+<tr>
+<td><code>referral_email</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td><strong>Only</strong> destination for Proceed/Callback + enrolment-invite emails</td>
+</tr>
+<tr>
+<td><code>excluded</code></td>
+<td>bool</td>
+<td>no</td>
+<td>false, idx</td>
+<td>Hard eligibility flag — removed from all results upstream of scoring (Annex One §8.13)</td>
+</tr>
+<tr>
+<td><code>exclusion_reason</code></td>
+<td>text</td>
+<td>yes</td>
+<td></td>
+<td>Narrative reason (SRA intervention or CML safeguarding)</td>
+</tr>
+<tr>
+<td><code>enrolled</code></td>
+<td>bool</td>
+<td>no</td>
+<td>false, idx</td>
+<td>Pilot enrolment; required for top-5 contactable + to submit Proceed/Callback</td>
+</tr>
+<tr>
+<td><code>active_in_pilot</code></td>
+<td>bool</td>
+<td>no</td>
+<td>true</td>
+<td>Lead-pause switch: required (with <code>enrolled</code>) for top-5 contactable membership. <code>false</code> keeps the firm ranked and visible (incl. its enrolled badge) but withholds Proceed/Callback. Does not affect scoring. Distinct from <code>excluded</code> (removes from results entirely) and <code>enrolled</code> (platform sign-up; checked by submit endpoints)</td>
+</tr>
+<tr>
+<td><code>enrollment_token</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>UNIQUE</td>
+<td>Single-use enrolment token (backend-generated, not from the sheet)</td>
+</tr>
+<tr>
+<td><code>enrollment_token_used</code></td>
+<td>bool</td>
+<td>no</td>
+<td>false</td>
+<td>Token consumed flag</td>
+</tr>
+<tr>
+<td><code>google_rating</code></td>
+<td>float</td>
+<td>yes</td>
+<td></td>
+<td>Aggregate Google rating (pre-baked in the export)</td>
+</tr>
+<tr>
+<td><code>google_review_count</code></td>
+<td>int</td>
+<td>yes</td>
+<td></td>
+<td>Google review count (pre-baked)</td>
+</tr>
+<tr>
+<td><code>google_reviews_url</code></td>
+<td>text</td>
+<td>yes</td>
+<td></td>
+<td>Link to the firm's Google reviews</td>
+</tr>
+<tr>
+<td><code>adjusted_reputation_value</code></td>
+<td>float</td>
+<td>yes</td>
+<td></td>
+<td>Pre-computed reputation input (ARV) — the reputation factor's raw input (§7)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="offices-firm-locations-one-primary-zero-or-more-branches"><code>offices</code> — firm locations (one primary + zero-or-more branches)<a class="headerlink" href="#offices-firm-locations-one-primary-zero-or-more-branches" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), idx</td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Office label (from Distance tab)</td>
+</tr>
+<tr>
+<td><code>address_line1</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Address line 1 (primary office only)</td>
+</tr>
+<tr>
+<td><code>city</code></td>
+<td>str(100)</td>
+<td>yes</td>
+<td></td>
+<td>Town/city</td>
+</tr>
+<tr>
+<td><code>postcode</code></td>
+<td>str(10)</td>
+<td>no</td>
+<td>idx</td>
+<td>UK postcode (geocoded for distance)</td>
+</tr>
+<tr>
+<td><code>office_id</code></td>
+<td>str(32)</td>
+<td>yes</td>
+<td></td>
+<td>JQ's stable office identifier (e.g. <code>CML-007-002</code>, Distance tab); links the office to its office-level price card</td>
+</tr>
+<tr>
+<td><code>lat</code> / <code>lng</code></td>
+<td>float</td>
+<td>yes</td>
+<td></td>
+<td>Coordinates from postcodes.io; NULL ⇒ excluded from distance</td>
+</tr>
+<tr>
+<td><code>is_primary</code></td>
+<td>bool</td>
+<td>no</td>
+<td>true</td>
+<td>Marks the firm's primary office</td>
+</tr>
+<tr>
+<td><code>office_type</code></td>
+<td>enum</td>
+<td>yes</td>
+<td><code>BRANCH</code>/<code>HO</code></td>
+<td>Branch vs head office</td>
+</tr>
+</tbody>
+</table>
+<h3 id="firm_users-portal-logins"><code>firm_users</code> — portal logins<a class="headerlink" href="#firm_users-portal-logins" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), idx</td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td>UNIQUE, idx</td>
+<td>Login credential (globally unique)</td>
+</tr>
+<tr>
+<td><code>hashed_password</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td><strong>bcrypt</strong> hash</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>enum</td>
+<td>no</td>
+<td><code>admin</code>/<code>staff</code>, default admin</td>
+<td>Portal permission level</td>
+</tr>
+<tr>
+<td><code>full_name</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Display name</td>
+</tr>
+<tr>
+<td><code>password_reset_token</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>UNIQUE</td>
+<td>One-time reset token</td>
+</tr>
+<tr>
+<td><code>password_reset_expires_at</code></td>
+<td>timestamptz</td>
+<td>yes</td>
+<td></td>
+<td>Reset-token expiry (TTL <strong>3 hours</strong>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="price_cards-firm-pricing-one-per-firm"><code>price_cards</code> — firm pricing (one per firm)<a class="headerlink" href="#price_cards-firm-pricing-one-per-firm" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), idx</td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>office_id</code></td>
+<td>str(32)</td>
+<td>yes</td>
+<td><strong>UNIQUE with <code>org_id</code></strong> (nulls not distinct)</td>
+<td>JQ's office identifier, or <code>NULL</code> for the firm-level <strong>DEFAULT</strong> card. A firm may have one DEFAULT card plus one card per named office (multi-office pricing); the portal only edits the DEFAULT card and search only consumes the DEFAULT card until office-level portal editing/search ships (issue #64)</td>
+</tr>
+<tr>
+<td><code>price_type</code></td>
+<td>enum</td>
+<td>no</td>
+<td><code>estimated</code>/<code>verified</code>/<code>no_data</code> (default <code>no_data</code>)</td>
+<td>Drives the estimated-price uplift; <code>no_data</code> ⇒ <code>quote = null</code> in results, ranked last, not top-5 eligible. Sourced from the Price tab's <strong>Verified / Estimated / Unavailable</strong> column (<code>Unavailable</code>/<code>No data</code> both map to <code>no_data</code>)</td>
+</tr>
+<tr>
+<td><code>pricing</code></td>
+<td>JSONB</td>
+<td>no</td>
+<td><code>{}</code></td>
+<td>Anchor fees + modifiers + additional costs + disbursements (shape below)</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>str(10)</td>
+<td>no</td>
+<td><code>import</code></td>
+<td>Provenance of the current card: <code>import</code> (Master Export) vs <code>portal</code> (firm self-service edit)</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>pricing</code> JSONB shape</strong> (built by <code>scripts/import_master_export.py</code>, consumed by <code>price_calc.py</code>):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>{
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  "freehold":  { "purchase": {"150000": 950, ... "1500000": 1450}, "sale": { ... } },
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  "leasehold": { "purchase": { ... }, "sale": { ... } },     // 7 anchors each: 150k,250k,500k,750k,1m,1.25m,1.5m
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  "modifiers": [ {"name": "Acting for lender", "amount": 150}, ... ],              // 16 rows, imported verbatim
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  "additional_costs": [ {"name": "SDLT submission fee", "amount": 80}, ... ],      // 5 rows, imported verbatim
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  "disbursements": [ {"name": "Disb - searches (CML standard pack)", "amount": 350,
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>                      "estimated": true, "vat_applies": false}, ... ],
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  "anchor_states": { "freehold_purchase": {"150000": "unavailable", ...}, ... }
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>}
+</span></code></pre></div>
+<p>Sentinel Price-tab cells (<code>Unavailable</code> / <code>Not Offered</code> / <code>Withheld</code>) are recorded in <code>anchor_states</code>
+per tenure/side rather than as a numeric fee; the anchor lookup then has no fee for that cell.</p>
+<blockquote>
+<p>Every named <code>modifiers</code>/<code>additional_costs</code> row on the current (07.07.26) Master Export is imported
+verbatim, whether or not <code>price_calc.py</code> currently applies it — see §6 for which rows are wired into
+a trigger.</p>
+</blockquote>
+<h3 id="price_card_revisions-portal-pricing-edit-history-issue-63"><code>price_card_revisions</code> — portal pricing edit history (issue #63)<a class="headerlink" href="#price_card_revisions-portal-pricing-edit-history-issue-63" title="Permanent link">&para;</a></h3>
+<p>Snapshot of a price card's prior state, written just before a portal PUT overwrites it:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>price_card_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→price_cards (cascade)</td>
+<td>Card the snapshot belongs to</td>
+</tr>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade)</td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>pricing</code></td>
+<td>JSONB</td>
+<td>no</td>
+<td></td>
+<td>Prior pricing blob</td>
+</tr>
+<tr>
+<td><code>price_type</code></td>
+<td>enum</td>
+<td>no</td>
+<td></td>
+<td>Prior <code>price_type</code></td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>str(10)</td>
+<td>no</td>
+<td></td>
+<td>Prior source (<code>import</code>/<code>portal</code>)</td>
+</tr>
+<tr>
+<td><code>submitted_by</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>FK→firm_users (SET NULL)</td>
+<td>Portal user whose edit displaced this state</td>
+</tr>
+</tbody>
+</table>
+<h3 id="chat_sessions-consumer-intake-session-state"><code>chat_sessions</code> — consumer intake + session state<a class="headerlink" href="#chat_sessions-consumer-intake-session-state" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>practice_area</code></td>
+<td>str(50)</td>
+<td>no</td>
+<td><code>residential_conveyancing</code></td>
+<td>Always conveyancing for MVP</td>
+</tr>
+<tr>
+<td><code>answers</code></td>
+<td>JSONB</td>
+<td>no</td>
+<td><code>{}</code></td>
+<td>Raw intake answers keyed by question id (shape below)</td>
+</tr>
+<tr>
+<td><code>message_history</code></td>
+<td>JSONB</td>
+<td>no</td>
+<td><code>[]</code></td>
+<td>Chat transcript array (<code>role</code>/<code>content</code>/<code>question_id</code>/<code>timestamp</code>)</td>
+</tr>
+<tr>
+<td><code>results_cache</code></td>
+<td>JSONB</td>
+<td>yes</td>
+<td></td>
+<td>Cached default (balanced + auto-distance) results for resume</td>
+</tr>
+<tr>
+<td><code>save_email</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Email for save/resume link</td>
+</tr>
+<tr>
+<td><code>gclid</code> / <code>gbraid</code> / <code>wbraid</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Google Ads click IDs captured on landing (§8)</td>
+</tr>
+<tr>
+<td><code>expires_at</code></td>
+<td>timestamptz</td>
+<td>no</td>
+<td>idx</td>
+<td>Session TTL</td>
+</tr>
+</tbody>
+</table>
+<p><code>answers</code> carries <code>transaction_type</code> (<code>buying</code>/<code>selling</code>/<code>selling_and_buying</code>), per-side
+<code>*_tenure_type</code> + <code>*_property_value</code>, a <code>transaction_details</code> dict (option id → <code>true</code> for ticked
+checkboxes, or <code>"yes"</code>/<code>"no"</code>/<code>"dont_know"</code> for the tri-state rows — Don't know is stored distinctly
+from No), <code>mortgage_redemption_count</code> (sale side, number), <code>party_count</code> (<code>"1"</code>–<code>"4"</code>, every pathway)
+and an optional postcode. Question copy and answer formats follow the <strong>Canonical Pricing
+Specification (CPS) Consumer Intake tab</strong> (source of truth). Legacy pre-CPS sessions stored
+<code>transaction_details</code> as a flag list; <code>get_intake_flags</code> still maps those tokens. <strong>Scorecard
+preference and distance inclusion are NOT stored</strong> — they are URL query params on
+<code>/api/public/search/{session_id}</code>.</p>
+<h3 id="appointments-proceed-instruct-callback-requests"><code>appointments</code> — Proceed (instruct) + Callback requests<a class="headerlink" href="#appointments-proceed-instruct-callback-requests" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>FK→chat_sessions (SET NULL), idx</td>
+<td>Originating session</td>
+</tr>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), idx</td>
+<td>Target firm</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>enum</td>
+<td>no</td>
+<td><code>select</code>/<code>callback</code></td>
+<td>Proceed = <code>select</code>; Callback = <code>callback</code></td>
+</tr>
+<tr>
+<td><code>client_name</code> / <code>client_email</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td>Consumer contact (email confirmation + follow-ups)</td>
+</tr>
+<tr>
+<td><code>client_phone</code></td>
+<td>str(30)</td>
+<td>yes</td>
+<td></td>
+<td>Required for callback</td>
+</tr>
+<tr>
+<td><code>preferred_time</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Free-text availability</td>
+</tr>
+<tr>
+<td><code>callback_windows</code></td>
+<td>JSONB</td>
+<td>yes</td>
+<td></td>
+<td>Selected <code>[{date, window}]</code> slots (windows 9–11/11–1/1–3/3–5)</td>
+</tr>
+<tr>
+<td><code>quoted_price</code></td>
+<td>numeric(10,2)</td>
+<td>yes</td>
+<td></td>
+<td>Total Effective Price snapshot (audit/invoice)</td>
+</tr>
+<tr>
+<td><code>quote_breakdown</code></td>
+<td>text</td>
+<td>yes</td>
+<td></td>
+<td>JSON snapshot of the <code>QuoteBreakdown</code> the consumer saw, written at Select/Callback submission (issue #180); NULL for earlier appointments and unpriceable firms; read only by the four initial referral emails</td>
+</tr>
+<tr>
+<td><code>price_type</code></td>
+<td>str(10)</td>
+<td>yes</td>
+<td></td>
+<td>Whether the price the user saw was <code>estimated</code> or <code>verified</code> (rendered into referral emails)</td>
+</tr>
+<tr>
+<td><code>data_sharing_consent</code></td>
+<td>bool</td>
+<td>no</td>
+<td>false</td>
+<td>Unified data-sharing consent captured at Proceed/Callback</td>
+</tr>
+<tr>
+<td><code>purchase_property_postcode</code> / <code>sale_property_postcode</code></td>
+<td>str(16)</td>
+<td>yes</td>
+<td></td>
+<td>Optional property postcodes</td>
+</tr>
+<tr>
+<td><code>parties</code></td>
+<td>JSONB</td>
+<td>yes</td>
+<td></td>
+<td>Extended transaction-parties payload from the Select/Callback forms (#88): ownership, client(s) incl. DOB, property + correspondence addresses</td>
+</tr>
+<tr>
+<td><code>gclid</code> / <code>gbraid</code> / <code>wbraid</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Google Ads click IDs at conversion (§8)</td>
+</tr>
+<tr>
+<td><code>click_captured_at</code></td>
+<td>timestamptz</td>
+<td>yes</td>
+<td></td>
+<td>When the click IDs were read</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>firm_contact_made</code> and <code>conflict_check_outcome</code> are <strong>not</strong> stored columns — they are derived at
+runtime from <code>workflow_events</code> (<code>app/services/workflow.py::derive_firm_contact_made</code> /
+<code>derive_conflict_check_outcome</code>, consumed by <code>app/api/admin/metrics.py</code>) and surfaced in the API schema.</p>
+</blockquote>
+<h3 id="interest_registrations-interest-in-non-participating-firms"><code>interest_registrations</code> — interest in non-participating firms<a class="headerlink" href="#interest_registrations-interest-in-non-participating-firms" title="Permanent link">&para;</a></h3>
+<p>Recorded when a user would have selected a firm that hasn't enrolled — sales evidence for recruiting
+the firm plus a conversion metric. One registration per chat session (server-enforced):</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>FK→chat_sessions (SET NULL), UNIQUE</td>
+<td>Originating session (one registration per session)</td>
+</tr>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade)</td>
+<td>Target (non-enrolled) firm</td>
+</tr>
+<tr>
+<td><code>client_name</code> / <code>client_email</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td>Consumer contact</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reviews"><code>reviews</code><a class="headerlink" href="#reviews" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), idx</td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>enum</td>
+<td>no</td>
+<td><code>cml</code>/<code>google</code>, idx</td>
+<td>Origin of the review</td>
+</tr>
+<tr>
+<td><code>rating</code></td>
+<td>numeric(2,1)</td>
+<td>no</td>
+<td></td>
+<td>0.0–5.0 stars</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>text</td>
+<td>yes</td>
+<td></td>
+<td>Review body</td>
+</tr>
+<tr>
+<td><code>reviewer_name</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Reviewer display name</td>
+</tr>
+<tr>
+<td><code>firm_response</code> / <code>firm_response_at</code></td>
+<td>text / ts</td>
+<td>yes</td>
+<td></td>
+<td>Firm's public response</td>
+</tr>
+<tr>
+<td><code>reported</code> / <code>reported_at</code></td>
+<td>bool / ts</td>
+<td>no/yes</td>
+<td>false</td>
+<td>Moderation flag</td>
+</tr>
+</tbody>
+</table>
+<h3 id="consumer_reviews-consumer-1011-post-matter-review-capture-issue-131"><code>consumer_reviews</code> — Consumer-10/11 post-matter review capture (issue #131)<a class="headerlink" href="#consumer_reviews-consumer-1011-post-matter-review-capture-issue-131" title="Permanent link">&para;</a></h3>
+<p>Capture-only (§11): one structured review per transaction, submitted through the tokenised,
+login-free <code>/review/{token}</code> journey. Never published, never joins <code>reviews</code>, and plays no
+part in ranking, the displayed reputation aggregate, or a firm notification.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>appointment_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→appointments (cascade), <strong>UNIQUE</strong></td>
+<td>Source transaction — one review each</td>
+</tr>
+<tr>
+<td><code>variant</code></td>
+<td>str(16)</td>
+<td>no</td>
+<td></td>
+<td>Which email this answers: <code>completed</code> (Consumer-10) or <code>aborted</code> (Consumer-11)</td>
+</tr>
+<tr>
+<td><code>recommend_rating</code> / <code>clarity_rating</code> / <code>responsiveness_rating</code></td>
+<td>smallint</td>
+<td>no</td>
+<td></td>
+<td>Three 1–5 star ratings</td>
+</tr>
+<tr>
+<td><code>could_compare</code></td>
+<td>str(32)</td>
+<td>yes</td>
+<td></td>
+<td>Aborted variant only — whether the consumer could compare the final costs</td>
+</tr>
+<tr>
+<td><code>price_matched</code></td>
+<td>str(32)</td>
+<td>yes</td>
+<td></td>
+<td>Price-integrity answer (conditional on <code>could_compare</code> for the aborted variant)</td>
+</tr>
+<tr>
+<td><code>change_explained</code></td>
+<td>str(16)</td>
+<td>yes</td>
+<td></td>
+<td>Conditional on a "no" <code>price_matched</code> answer</td>
+</tr>
+<tr>
+<td><code>comments</code></td>
+<td>text</td>
+<td>yes</td>
+<td></td>
+<td>Free text, stored separately from the structured answers</td>
+</tr>
+</tbody>
+</table>
+<h3 id="complaints_summary-regulatory_summary-pre-computed-factor-inputs-one-per-firm"><code>complaints_summary</code> / <code>regulatory_summary</code> — pre-computed factor inputs (one per firm)<a class="headerlink" href="#complaints_summary-regulatory_summary-pre-computed-factor-inputs-one-per-firm" title="Permanent link">&para;</a></h3>
+<p>Identical shape (<code>complaints_summary</code> uses <code>issue_one/two/three</code>, <code>regulatory_summary</code> uses
+<code>outcome_one/two/three</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (cascade), <strong>UNIQUE</strong></td>
+<td>Parent firm</td>
+</tr>
+<tr>
+<td><code>score</code></td>
+<td>float</td>
+<td>no</td>
+<td></td>
+<td><strong>0–100 factor score consumed directly by the ranker</strong> (no runtime normalisation)</td>
+</tr>
+<tr>
+<td><code>stars</code></td>
+<td>int</td>
+<td>no</td>
+<td></td>
+<td>0–5 display badge</td>
+</tr>
+<tr>
+<td><code>display_text</code></td>
+<td>str(255)</td>
+<td>no</td>
+<td></td>
+<td>e.g. "Low" / "No published complaints history"</td>
+</tr>
+<tr>
+<td><code>decision_count_text</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>e.g. "2 published decisions (last 12 months)"</td>
+</tr>
+<tr>
+<td><code>scale_context</code> (complaints only)</td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>e.g. "~1 decision per 11 offices"</td>
+</tr>
+<tr>
+<td><code>issue_one/two/three</code> · <code>outcome_one/two/three</code></td>
+<td>str(255)</td>
+<td>yes</td>
+<td></td>
+<td>Top themes</td>
+</tr>
+<tr>
+<td><code>external_url</code></td>
+<td>str(500)</td>
+<td>yes</td>
+<td></td>
+<td>LeO / SRA link</td>
+</tr>
+<tr>
+<td><code>last_updated</code></td>
+<td>timestamptz</td>
+<td>no</td>
+<td>now()</td>
+<td>Audit for re-imports</td>
+</tr>
+</tbody>
+</table>
+<h3 id="analytics_events-first-party-funnel-mirror-standalone"><code>analytics_events</code> — first-party funnel mirror (standalone)<a class="headerlink" href="#analytics_events-first-party-funnel-mirror-standalone" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>idx</td>
+<td>Originating session (if any)</td>
+</tr>
+<tr>
+<td><code>visitor_id</code></td>
+<td>str(64)</td>
+<td>yes</td>
+<td>idx</td>
+<td>Anonymous first-party visitor id (unique-user counting, issue #120)</td>
+</tr>
+<tr>
+<td><code>event_type</code></td>
+<td>str(64)</td>
+<td>no</td>
+<td>idx</td>
+<td>Event name (§9)</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>JSONB</td>
+<td>no</td>
+<td><code>{}</code></td>
+<td>Event payload (mapped as <code>metadata_</code> on the ORM model)</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>no</td>
+<td>now(), idx</td>
+<td>Server-side timestamp</td>
+</tr>
+</tbody>
+</table>
+<h3 id="search_ranking_events-durable-per-search-ranking-positions-issue-120"><code>search_ranking_events</code> — durable per-search ranking positions (issue #120)<a class="headerlink" href="#search_ranking_events-durable-per-search-ranking-positions-issue-120" title="Permanent link">&para;</a></h3>
+<p>One append-only row per in-scope firm (incl. non-participating) each time a default search generates
+results; the underlying event data for the leaderboards. Written by <code>app/api/public/search.py</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key/Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>search_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>idx</td>
+<td>Groups all firm rows from one search generation</td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>yes</td>
+<td>FK→chat_sessions (SET NULL)</td>
+<td>Originating session</td>
+</tr>
+<tr>
+<td><code>org_id</code></td>
+<td>UUID</td>
+<td>no</td>
+<td>FK→organisations (CASCADE), idx</td>
+<td>Ranked firm</td>
+</tr>
+<tr>
+<td><code>rank</code></td>
+<td>int</td>
+<td>no</td>
+<td></td>
+<td>1-based full-market position at generation time</td>
+</tr>
+<tr>
+<td><code>enrolled</code></td>
+<td>bool</td>
+<td>no</td>
+<td></td>
+<td>Enrolment snapshot at generation time</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>no</td>
+<td>now(), idx</td>
+<td>Generation timestamp</td>
+</tr>
+</tbody>
+</table>
+<p>New columns added by issue #120: <code>chat_sessions.utm_source/utm_medium/utm_campaign/referrer</code>
+(traffic source); <code>appointments.legal_fee_net</code> (referral-revenue base); <code>organisations.chargeable_since</code>
+(Deferred→Chargeable transition).</p>
+<hr />
+<h2 id="6-pricing-engine-as-built">6. Pricing engine (as-built)<a class="headerlink" href="#6-pricing-engine-as-built" title="Permanent link">&para;</a></h2>
+<p>Deterministic, rules-based, no runtime AI. Implementation: <code>backend/app/services/price_calc.py</code>.
+Spec: Annex One §6/§10 for the formula and confidence factors; the <strong>Canonical Pricing Specification
+(CPS)</strong> for pricing item definitions, trigger conditions, consumer question copy and Price Item
+display names. Breakdown lines are labelled with the CPS Price Item names via the single
+<code>CPS_DISPLAY_NAMES</code> map (raw Master Export column string → display name).</p>
+<h3 id="constants-as-built">Constants (as-built)<a class="headerlink" href="#constants-as-built" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Code value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CONFIDENCE_UPLIFT_C</code></td>
+<td><strong>0.20</strong></td>
+<td>Estimated legal-fee uplift (Annex One §10); set by <code>engine-tweaks.md</code>.</td>
+</tr>
+<tr>
+<td><code>CONFIDENCE_UPLIFT_D</code></td>
+<td><strong>0.02</strong></td>
+<td>Per-item estimated-disbursement uplift (§6)</td>
+</tr>
+<tr>
+<td><code>VAT_RATE</code></td>
+<td><strong>0.20</strong></td>
+<td>On legal fees only (not on HMLR / VAT-free searches)</td>
+</tr>
+<tr>
+<td><code>ANCHORS</code></td>
+<td>150k, 250k, 500k, 750k, 1m, 1.25m, 1.5m</td>
+<td>Seven CML anchor points</td>
+</tr>
+</tbody>
+</table>
+<h3 id="formula">Formula<a class="headerlink" href="#formula" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>P_estimated       = anchor_fee + Σ applicable modifiers + Σ applicable additional costs
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>P_legal_effective = P_estimated × (1 + 0.20)   if price_type = estimated
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>                  = P_estimated                if price_type = verified
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>P_effective       = P_legal_effective + (P_legal_effective × 0.20 VAT) + Σ included disbursements
+</span></code></pre></div>
+<ul>
+<li><strong>Anchor lookup</strong> (<code>_nearest_anchor</code>): the user's property value snaps to the <strong>closest</strong> of the seven
+  anchors by absolute distance (nearest, not round-up).</li>
+<li><strong>Modifiers applied</strong> (purchase): new-build (freehold), new-lease (leasehold), acting-for-lender
+  (when mortgage), shared ownership / HTB equity loan / HTB ISA (three independent CPS split flags),
+  gifted deposit, unregistered-title purchase, Building Safety Act / Higher-Risk Building (leasehold
+  AND answer Yes), <strong>Solar Panels</strong> (answer Yes), <strong>Freehold Management Company</strong> (freehold AND answer
+  Yes), <strong>Existing Tenancy</strong> (checkbox true). (Sale): unregistered-title sale, additional mortgage
+  redemption (<strong>modifier × (n − 1)</strong> for <code>mortgage_redemption_count</code> n &gt; 1 — the first redemption is in
+  the base fee), BSA (leasehold AND Yes), <strong>Solar Panels</strong> (answer Yes), <strong>Help to Buy Redemption</strong>
+  (checkbox true). Unregistered-title fires on a <strong>No</strong> answer to the registered-title question; a
+  <strong>Don't know</strong> answer never applies a modifier. Zero-amount lines are dropped from display.
+  <strong>"Leasehold supplement"</strong> is imported onto every card but deliberately <strong>never applied</strong> by any
+  trigger — the LHP/LHS anchor grids already carry the leasehold premium for most firms, so applying
+  it again would double-count; revisit pending founder confirmation.</li>
+<li><strong>Additional costs applied:</strong> Identity Verification (<strong>firm amount × party count</strong>, "Four or more" =
+  ×4, charged <strong>once per transaction</strong> — purchase side on combined), onboarding, transfer-admin (both
+  sides), file storage (wherever the firm records one; never user-gated); SDLT admin (purchase).</li>
+<li><strong>Disbursements (purchase side only):</strong> the CML standard search pack — honouring its per-item
+  <code>estimated</code> (+2% <code>d</code>) and <code>vat_applies</code> flags — plus the <strong>HM Land Registry Scale 1 (online)</strong>
+  registration fee (a known, VAT-free, non-estimated public fee: ≤£80k→£20, ≤£100k→£40, ≤£200k→£100,
+  ≤£500k→£150, ≤£1m→£295, &gt;£1m→£500). The CPS HMLR sale-side fee is <strong>not implemented</strong> (calculation
+  undefined in the CPS).</li>
+<li><strong>Breakdown grouping:</strong> quote lines are returned in three lists matching the CPS categories —
+  <code>adjustments</code> (legal-fee modifiers), <code>additional_costs</code>, <code>disbursements</code>.</li>
+<li><strong>Combined buy+sell:</strong> the pricer runs once per side and <strong>sums</strong> the two totals (both sides carry
+  their own VAT; disbursements arise on the purchase side only).</li>
+<li>A firm with no anchors for the tenure/side, an unpriceable intake, or <code>price_type = no_data</code> returns
+  <strong>no quote</strong> and is dropped from results.</li>
+</ul>
+<blockquote>
+<p><strong>Pending CPS updates:</strong> the "Don't know" pricing consequence beyond "never apply the modifier"
+still awaits a CPS update (issue #55; the Solar Panels, Freehold Management Company, Existing
+Tenancy and Help to Buy Redemption modifiers are priced as of the 07.07.26 Master Export).</p>
+</blockquote>
+<p>Worked end-to-end examples: <code>docs/ranking-algorithm-worked-examples.md</code>.</p>
+<hr />
+<h2 id="7-ranking-engine-as-built">7. Ranking engine (as-built)<a class="headerlink" href="#7-ranking-engine-as-built" title="Permanent link">&para;</a></h2>
+<p>Deterministic six-factor scorecard. Identical inputs always produce identical outputs. Implementation:
+<code>ranking.py</code> (factor scorers), <code>scorecard.py</code> (weights + tie-break), <code>search.py</code> (orchestration).
+Spec: Annex One §5–§16.</p>
+<h3 id="factor-scoring">Factor scoring<a class="headerlink" href="#factor-scoring" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Input</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reputation</td>
+<td><code>organisations.adjusted_reputation_value</code></td>
+<td><strong>Relative</strong> min–max across the result set (all-equal ⇒ 50)</td>
+</tr>
+<tr>
+<td>Price</td>
+<td>Total Effective Price (§6)</td>
+<td><strong>Relative</strong> inverse min–max — lower price scores higher (all-equal ⇒ 50)</td>
+</tr>
+<tr>
+<td>Complaints</td>
+<td><code>complaints_summary.score</code></td>
+<td><strong>Absolute</strong>, consumed directly (missing ⇒ 100)</td>
+</tr>
+<tr>
+<td>Regulatory</td>
+<td><code>regulatory_summary.score</code></td>
+<td><strong>Absolute</strong>, consumed directly (missing ⇒ 100)</td>
+</tr>
+<tr>
+<td>Distance</td>
+<td>nearest office (haversine, miles)</td>
+<td><strong>Banded</strong>: 0–2→100, 2–5→95, 5–10→85, 10–15→70, 15–25→50, 25–40→25, 40+→10</td>
+</tr>
+<tr>
+<td>Offices</td>
+<td>office count</td>
+<td><strong>Banded</strong>: 1→70, 2–3→78, 4–6→85, 7–10→90, 11–20→95, 21+→100</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Distance is <strong>banded by miles</strong>, not min–max normalised (changed per <code>engine-tweaks.md</code>). Bands are
+lower-bound-inclusive top-down (exactly 2.0mi → 95).</p>
+</blockquote>
+<h3 id="scorecards-scorecardpyscorecards-integer-weights-summing-to-100">Scorecards (<code>scorecard.py::SCORECARDS</code>, integer weights summing to 100)<a class="headerlink" href="#scorecards-scorecardpyscorecards-integer-weights-summing-to-100" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variant</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>balanced</strong></td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td>reputation</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>price</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>complaints</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>regulatory</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>distance</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td>offices</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">40</td>
+</tr>
+</tbody>
+</table>
+<p>The user picks one priority factor on the chat preference step (default <strong>balanced</strong>).</p>
+<ul>
+<li><strong>Distance excluded</strong> (no postcode, or <code>include_distance=false</code>, or a postcode that fails to geocode):
+  <code>distance</code> weight → 0 and the remaining weights are <strong>proportionately rescaled to sum to 100</strong>
+  (Annex One §8.2). When a postcode fails to geocode, the consumer is told why via <code>distance_status</code>
+  (<code>postcode_not_found</code> / <code>geocoding_unavailable</code>) and offered an inline re-entry / retry on the
+  results page (issue #182, D-1).</li>
+<li><strong>Overall score</strong> = Σ(factor × weight) / 100.</li>
+<li><strong>Tie-break order</strong> (§11): overall → reputation → complaints → regulatory → price → distance score →
+  offices → alphabetical by firm name.</li>
+</ul>
+<h3 id="sequencing-eligibility-searchpy">Sequencing &amp; eligibility (<code>search.py</code>)<a class="headerlink" href="#sequencing-eligibility-searchpy" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Eligibility filter</strong> (upstream of scoring): exclude <code>organisations.excluded = true</code>. Firms without
+   a usable price card (no card, <code>price_type = no_data</code>, or an intake that cannot be priced) are
+   <strong>included</strong> but ranked after all priceable firms with <code>quote = null</code> and
+   <code>factor_scores.price = null</code> (§8.13). They are not eligible for the top-5 contactable set.</li>
+<li><strong>Rank the entire in-scope WMCA market</strong> with the chosen scorecard.</li>
+<li><strong>Extract the top 5 contactable</strong> from that ordering: <code>enrolled = true</code> <strong>AND</strong> <code>active_in_pilot =
+   true</code>, first five in rank order. Firms ranked 6+ (or not contactable) are shown without Proceed/
+   Callback actions. This preserves the "whole of market / independent" positioning.</li>
+</ol>
+<blockquote>
+<p><strong>No per-CTA gating.</strong> Proceed/Callback availability is driven solely by <code>enrolled</code> +
+<code>active_in_pilot</code> + top-5 membership (results) and an <code>enrolled</code> check (submit endpoints). There is no
+per-firm "Proceed enabled" / "Callback enabled" switch — the earlier vestigial <code>proceed_enabled</code> /
+<code>callback_enabled</code> columns were removed. Per-CTA control would need wiring into <code>search.py</code> and the
+appointment endpoints.</p>
+</blockquote>
+<p>Distance deep-dive: <code>docs/architecture/postcode-distance.md</code>.</p>
+<hr />
+<h2 id="8-google-lead-generation-google-ads-click-id-attribution">8. Google lead generation (Google Ads click-ID attribution)<a class="headerlink" href="#8-google-lead-generation-google-ads-click-id-attribution" title="Permanent link">&para;</a></h2>
+<p>PPC (Google Ads) is the pilot's traffic source. CML captures the ad <strong>click ID</strong> on landing, ties it to
+the lead it produces, and can hand that back to the agency for an <strong>offline "Import conversions from
+clicks"</strong> upload. There is <strong>no server-side conversion postback, no gtag/GA4, and no UTM parsing</strong> —
+attribution is purely on the Google click ID, exported and uploaded out-of-band.</p>
+<h3 id="what-is-captured">What is captured<a class="headerlink" href="#what-is-captured" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>When Google uses it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gclid</code></td>
+<td>Standard Google Ads click ID (the common case)</td>
+</tr>
+<tr>
+<td><code>gbraid</code></td>
+<td>iOS traffic, app→web journeys</td>
+</tr>
+<tr>
+<td><code>wbraid</code></td>
+<td>iOS traffic, web→web journeys</td>
+</tr>
+</tbody>
+</table>
+<p>Whichever is present in the landing URL is read verbatim (e.g.
+<code>https://choosemylawyer.ai/?gclid=…</code>). Capture is <strong>site-wide</strong> — the ad's final URL can point at any
+page. UTM params are <strong>not</strong> captured.</p>
+<h3 id="where-it-is-stored-three-stages-frontendlibclickidsts-db">Where it is stored (three stages — <code>frontend/lib/clickIds.ts</code> → DB)<a class="headerlink" href="#where-it-is-stored-three-stages-frontendlibclickidsts-db" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Browser, on landing</strong> — <code>&lt;ClickIdCapture /&gt;</code> (mounted in the root layout) writes any present click
+   ID to a first-party cookie (<code>sozo_gclid</code> / <code>sozo_gbraid</code> / <code>sozo_wbraid</code>, <strong>90-day</strong> max-age) with a
+   localStorage mirror. Capture is <strong>unconditional — NOT gated by cookie consent</strong> (so attribution
+   survives a declined banner), and only writes when a param is present (inert for organic/direct). The
+   Meta Pixel / analytics tracking in §9 <em>is</em> consent-gated; this is the deliberate exception.</li>
+<li><strong>Chat session, on intake start</strong> — stamped onto <code>chat_sessions.{gclid,gbraid,wbraid}</code>; the session
+   <code>created_at</code> is the landing-stage capture time.</li>
+<li><strong>Lead, on conversion</strong> — at Proceed/Callback the current click ID is read again and stamped onto
+   <code>appointments.{gclid,gbraid,wbraid}</code> plus <code>click_captured_at</code> (conversion time), alongside the firm
+   and <code>quoted_price</code> (conversion value). Storing at both stages lets attribution survive if one stage
+   missed it.</li>
+</ol>
+<p>A <strong>Proceed</strong> is one lead (<code>appointments.type = select</code>); a <strong>Callback</strong> to up to three firms produces
+<strong>one lead row per firm</strong>, all sharing the same click ID and <code>click_captured_at</code>.</p>
+<h3 id="lead-export-for-the-agency">Lead export for the agency<a class="headerlink" href="#lead-export-for-the-agency" title="Permanent link">&para;</a></h3>
+<p>The click-ID data is captured on every session and lead, but there is <strong>no self-serve "download leads
+CSV" yet</strong> — for the pilot the export is produced on request from the production DB with the query
+below.</p>
+<p><strong>Attribution rules (decided 2026-07, issue #53):</strong></p>
+<ol>
+<li><strong>One conversion per user submission, not per firm.</strong> A callback to up to three firms is a single
+   user action on one ad click, so it uploads as <strong>one</strong> <code>CML Callback</code> conversion (the DB still holds
+   one <code>appointments</code> row per firm — the grouping happens at export). A Proceed is one conversion as
+   before. Per-firm rows would triple-count callback clicks in Google Ads.</li>
+<li><strong><code>conversion_value</code> = highest <code>quoted_price</code> in the submission</strong> (<code>MAX</code>). The consumer transacts
+   with at most one firm, so the value a click can realise is a single quote, not the sum of the
+   bundle; summing would inflate callbacks ~3× relative to Proceeds and bias bidding towards the
+   less-committed action. For Proceeds (single row) this degenerates to the row's own quote, keeping
+   the two conversion actions directly comparable.</li>
+<li><strong><code>conversion_time</code></strong> is emitted as <code>yyyy-mm-dd HH:mm:ss+HH:mm</code> in <strong>UTC</strong> (offset <code>+00:00</code>), one of
+   Google's accepted click-import formats — no timezone ambiguity at upload.</li>
+</ol>
+<p>The rules are interdependent: per-submission grouping (1) forces an aggregate value rule (2) and a
+single timestamp per row (3). Do not change one without revisiting the others.</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">SELECT</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">a</span><span class="p">.</span><span class="n">session_id</span><span class="w">                      </span><span class="k">AS</span><span class="w"> </span><span class="n">session_id</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">a</span><span class="p">.</span><span class="k">type</span><span class="w">                            </span><span class="k">AS</span><span class="w"> </span><span class="n">lead_type</span><span class="p">,</span><span class="w">         </span><span class="c1">-- 'select' (Proceed) or 'callback'</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="k">CASE</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="k">type</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s1">'select'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'CML Proceed'</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">                </span><span class="k">WHEN</span><span class="w"> </span><span class="s1">'callback'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'CML Callback'</span><span class="w"> </span><span class="k">END</span><span class="w">     </span><span class="k">AS</span><span class="w"> </span><span class="n">conversion_name</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">gclid</span><span class="p">,</span><span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">gclid</span><span class="p">)</span><span class="w">       </span><span class="k">AS</span><span class="w"> </span><span class="n">gclid</span><span class="p">,</span><span class="w">             </span><span class="c1">-- conversion-time value, else landing value</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">gbraid</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">gbraid</span><span class="p">)</span><span class="w">      </span><span class="k">AS</span><span class="w"> </span><span class="n">gbraid</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">wbraid</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">wbraid</span><span class="p">)</span><span class="w">      </span><span class="k">AS</span><span class="w"> </span><span class="n">wbraid</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="n">to_char</span><span class="p">(</span><span class="k">MIN</span><span class="p">(</span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">click_captured_at</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">created_at</span><span class="p">))</span><span class="w"> </span><span class="k">AT</span><span class="w"> </span><span class="k">TIME</span><span class="w"> </span><span class="k">ZONE</span><span class="w"> </span><span class="s1">'UTC'</span><span class="p">,</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">            </span><span class="s1">'YYYY-MM-DD HH24:MI:SS'</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">'+00:00'</span><span class="w">            </span><span class="k">AS</span><span class="w"> </span><span class="n">conversion_time</span><span class="p">,</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="k">MAX</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">quoted_price</span><span class="p">)</span><span class="w">               </span><span class="k">AS</span><span class="w"> </span><span class="n">conversion_value</span><span class="p">,</span><span class="w">  </span><span class="c1">-- GBP; highest quote in the submission</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="s1">'GBP'</span><span class="w">                             </span><span class="k">AS</span><span class="w"> </span><span class="n">conversion_currency</span><span class="p">,</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">                          </span><span class="k">AS</span><span class="w"> </span><span class="n">firms_contacted</span><span class="p">,</span><span class="w">   </span><span class="c1">-- 1 for Proceed, 1–3 for Callback</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="n">string_agg</span><span class="p">(</span><span class="n">o</span><span class="p">.</span><span class="n">cml_firm_id</span><span class="p">,</span><span class="w"> </span><span class="s1">'; '</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">cml_firm_id</span><span class="p">)</span><span class="w">  </span><span class="k">AS</span><span class="w"> </span><span class="n">firm_ids</span><span class="p">,</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="n">string_agg</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">::</span><span class="nb">text</span><span class="p">,</span><span class="w">    </span><span class="s1">'; '</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">cml_firm_id</span><span class="p">)</span><span class="w">  </span><span class="k">AS</span><span class="w"> </span><span class="n">lead_ids</span><span class="p">,</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="n">s</span><span class="p">.</span><span class="n">created_at</span><span class="w">                      </span><span class="k">AS</span><span class="w"> </span><span class="n">session_started_at</span><span class="w"> </span><span class="c1">-- landing-stage capture time</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="k">FROM</span><span class="w"> </span><span class="n">appointments</span><span class="w"> </span><span class="n">a</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">chat_sessions</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">session_id</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">organisations</span><span class="w">  </span><span class="n">o</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">org_id</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">created_at</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="p">:</span><span class="n">from_date</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">created_at</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">:</span><span class="n">to_date</span><span class="w">   </span><span class="c1">-- half-open range</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">session_id</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="k">type</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">click_captured_at</span><span class="p">,</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">         </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">gclid</span><span class="p">,</span><span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">gclid</span><span class="p">),</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">         </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">gbraid</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">gbraid</span><span class="p">),</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">         </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">wbraid</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">wbraid</span><span class="p">),</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">         </span><span class="n">s</span><span class="p">.</span><span class="n">created_at</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">conversion_time</span><span class="p">;</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="c1">-- Google-attributable rows only: add</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="c1">--   AND COALESCE(a.gclid,a.gbraid,a.wbraid,s.gclid,s.gbraid,s.wbraid) IS NOT NULL</span>
+</span></code></pre></div>
+<p>Grouping grain caveats: <code>a.click_captured_at</code> is in the key because it is stamped once per
+<em>submission</em> (shared by every row of a callback bundle, distinct for a later Proceed in the same
+session). Since issue #176, only one Select can be <em>live</em> on a session (or consumer email) at a
+time — a second Proceed attempted while the first is still live is refused before an appointment
+is even created, so it never reaches this export. A second Proceed genuinely submitted later, once
+the first referral has been released (<code>unable_to_act</code>, <code>not_instructed</code>, <code>completed</code>, <code>aborted</code> or
+an admin void), is a distinct submission with its own <code>click_captured_at</code>, so the grouping grain
+still keeps the two apart rather than merging them. Rows whose <code>session_id</code> was nulled by a session
+deletion (<code>ON DELETE SET NULL</code>) group only by click ID and submission time; with no click ID at all
+they are excluded by the attributable-rows filter above, which is the only variant uploaded to
+Google.</p>
+<p>The columns <strong>Google requires</strong> for the click-import are the click ID, <code>conversion_name</code>,
+<code>conversion_time</code>, <code>conversion_value</code>, <code>conversion_currency</code>; the rest (<code>session_id</code>, <code>lead_type</code>,
+<code>firms_contacted</code>, <code>firm_ids</code>, <code>lead_ids</code>, <code>session_started_at</code>) are for CML/agency reconciliation
+only.</p>
+<h3 id="importing-into-google-ads-agency">Importing into Google Ads (agency)<a class="headerlink" href="#importing-into-google-ads-agency" title="Permanent link">&para;</a></h3>
+<p>Standard <strong>offline conversion import keyed on click ID</strong> (Goals → Conversions → New → Import →
+"Conversions from clicks"):
+- Create one conversion action per CML action — <code>CML Proceed</code>, <code>CML Callback</code>.
+- <strong>Multi-firm callbacks are already de-duplicated by the export</strong> (one row per submission — see the
+  attribution rules in §8.3). As belt-and-braces, still set <code>CML Callback</code> to count <strong>"One"</strong> per
+  click in the conversion-action settings.
+- <strong>Conversion time</strong> is emitted by the export as <code>yyyy-mm-dd HH:mm:ss+00:00</code> (UTC offset included),
+  which Google accepts directly — no account-timezone reconciliation needed.
+- <strong>Click-ID match window</strong> is ~90 days (Google-side); CML's 90-day cookie retention is aligned, but
+  very delayed conversions may fall outside Google's window.</p>
+<h3 id="privacy-position">Privacy position<a class="headerlink" href="#privacy-position" title="Permanent link">&para;</a></h3>
+<p>The click-ID cookie is first-party and holds only the opaque Google identifier — <strong>no name/email/phone</strong>.
+Personal details are captured separately at conversion under explicit data-sharing consent and are <strong>not</strong>
+part of the Google Ads feed (click ID + conversion metadata only). Meta Pixel / funnel analytics (§9) are
+consent-gated and independent of this attribution.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Google ad click ─ ?gclid=… ─► Landing: click ID → first-party cookie (90d, no consent gate)
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>        └─► Intake started → stamped on chat_session
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>              └─► Proceed / Callback → stamped on lead (+ click_captured_at, firm, quoted_price)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>                    └─► Export (click ID · conversion name · time · GBP value) → Google Ads click import
+</span></code></pre></div>
+<h3 id="legacy-google-places-reviews-sync-retired">Legacy — Google Places reviews sync (retired)<a class="headerlink" href="#legacy-google-places-reviews-sync-retired" title="Permanent link">&para;</a></h3>
+<p>Reputation now arrives pre-baked in the Master Export (<code>adjusted_reputation_value</code>), so the weekly
+Google Places sync was removed (see <code>app/tasks/scheduler.py</code>). <code>GOOGLE_PLACES_API_KEY</code> and the
+<code>reviews.external_id</code> / <code>reviews.synced_at</code> columns (the sync's idempotency/audit fields) have now been
+removed too. The <code>review_source</code> enum keeps its <code>google</code> value — pre-baked Google ratings still display
+on results and in the firm portal.</p>
+<hr />
+<h2 id="9-analytics-tracking">9. Analytics &amp; tracking<a class="headerlink" href="#9-analytics-tracking" title="Permanent link">&para;</a></h2>
+<p><strong>Consent split (issue #120, D-7).</strong> The first-party mirror is <strong>essential</strong> and fires regardless of
+consent (anonymous, first-party, never leaves CML); the marketing streams (Meta Pixel, GTM/dataLayer)
+remain <strong>gated on marketing consent</strong> (<code>frontend/lib/consent.ts</code>, localStorage key <code>cml.cookieConsent</code>).
+<code>frontend/lib/analytics.ts::emit</code> always calls <code>mirrorToBackend</code>, then returns early before the
+Pixel/dataLayer pushes when consent is absent. The cookie notice wording reflects this (essential
+anonymous analytics vs consented marketing).</p>
+<ul>
+<li><strong>Meta Pixel</strong> (<code>components/MetaPixel.tsx</code>) — loads only when <code>NEXT_PUBLIC_META_PIXEL_ID</code> is set and
+  consent is accepted. Standard events: <code>PageView</code>, <code>Lead</code> (Proceed), <code>Contact</code> (Callback). Custom
+  events: <code>IntakeStarted</code>, <code>IntakeCompleted</code>, <code>ScorecardChosen</code>, <code>ResultsViewed</code>. First-party-only
+  events (<code>intake_step</code>, <code>evidence_link_clicked</code>) have no Meta mapping.</li>
+<li><strong>Google Tag Manager</strong> (<code>components/GoogleTagManager.tsx</code>) — container injected only when
+  <code>NEXT_PUBLIC_GTM_ID</code> is set and consent is accepted (re-checked live on consent change). Tag
+  configuration lives in the GTM console, not in code.</li>
+<li><strong>First-party mirror</strong> (<code>frontend/lib/analytics.ts</code> → <code>POST /api/public/events</code> → <code>analytics_events</code>)
+  — events captured server-side so the founder has Meta-independent data. Event types:
+  <code>page_view</code>, <code>intake_started</code>, <code>intake_step</code>, <code>intake_completed</code>, <code>scorecard_chosen</code>,
+  <code>results_viewed</code>, <code>evidence_link_clicked</code>, <code>select_clicked</code>, <code>select_gateway_accepted</code>,
+  <code>select_gateway_declined</code>, <code>select</code>, <code>callback</code>, <code>interest_registered</code>. (<code>proceed</code> is
+  accepted by the backend schema as a legacy alias but is no longer emitted by the frontend — <code>select</code>
+  is the current Proceed event type.) Every event carries an anonymous <code>visitor_id</code>
+  (<code>frontend/lib/visitor.ts</code>, localStorage <code>cml.visitorId</code>) for distinct-user counting. <code>intake_step</code>
+  carries <code>{question_id, step}</code> (intake drop-off); <code>evidence_link_clicked</code> carries <code>{org_id, source}</code>
+  (SRA/LeO/reviews outbound-link usage on the results page).</li>
+<li><strong>Select Confirmation Gateway funnel (issue #189)</strong>, all carrying <code>{org_id, quoted_price}</code>:
+  <code>select_clicked</code> — the Select button was pressed and the gateway opened;
+  <code>select_gateway_accepted</code> — the consumer confirmed and continued to the Select form;
+  <code>select_gateway_declined</code> — the consumer <em>explicitly</em> backed out (secondary control, Escape or
+  backdrop), which is what distinguishes declining from abandoning at the gateway.
+  <code>select_clicked → select_gateway_accepted → select</code> (Select form completed) is the drop-off funnel;
+  grouping the declines on <code>metadata.org_id</code> in the CSV export gives declines per firm.</li>
+</ul>
+<p><strong>Traffic source.</strong> UTM params + external referrer are captured on landing
+(<code>frontend/lib/trafficSource.ts</code>, sessionStorage), attached to the chat session at creation, and stored
+on <code>chat_sessions</code> (<code>utm_source/medium/campaign</code>, <code>referrer</code>) alongside the Google Ads click IDs (§8).</p>
+<p><strong>Export:</strong> <code>GET /api/admin/analytics/export?from=&amp;to=</code> (admin-keyed) returns a CSV of events for the
+half-open <code>[from, to)</code> date range.</p>
+<h3 id="operations-dashboard-data-metrics-issues-74-120">Operations dashboard &amp; data metrics (issues #74, #120)<a class="headerlink" href="#operations-dashboard-data-metrics-issues-74-120" title="Permanent link">&para;</a></h3>
+<p><code>app/api/admin/metrics.py</code> + <code>components/admin/AdminDashboard.tsx</code>. All read-only aggregates over the
+tables above; every endpoint takes the same half-open <code>[from, to)</code> window.</p>
+<ul>
+<li><strong><code>GET /metrics/summary</code></strong> — funnel (incl. <code>unique_users</code>, per-question <code>intake_steps</code>), a
+  <code>commercial</code> block (participating / chargeable / deferred firm counts, estimated referral
+  revenue), lead-quality, marketing (<code>traffic_sources</code>, <code>evidence_sources</code>,
+  matter types, top pages) and Google-Ads attribution.</li>
+<li><strong><code>GET /metrics/firms</code></strong> — Participating-firm leaderboard (<strong>enrolled only</strong>): selects, callback
+  leads, pipeline value, <code>searches_appeared</code>, and firm response times (referral →
+  conflict-check / contact report, from <code>workflow_events</code>). Filters: <code>from</code>, <code>to</code>, <code>org_id</code>.</li>
+<li><strong><code>GET /metrics/non-participating</code></strong> — un-enrolled firms with searches appeared, interest
+  registrations and latest consumer search; default order searches-appeared desc, tie-break
+  latest-search desc (D-8). Filters: <code>from</code>, <code>to</code>, <code>org_id</code>.</li>
+<li><strong><code>GET /metrics/ledger</code></strong> — chargeable-events (appointment) ledger.</li>
+<li><strong>CSV exports</strong> (underlying rows, respecting active filters):
+  <code>/metrics/firms/export</code>, <code>/metrics/non-participating/export</code>, <code>/metrics/rankings/export</code>
+  (search ranking-position events), <code>/metrics/ledger/export</code>, plus <code>/analytics/export</code>.</li>
+</ul>
+<p><strong>Commercial model.</strong> Referral revenue = <strong>15% of net legal fees</strong> (<code>appointments.legal_fee_net</code> =
+base fee + modifiers + additional costs, excluding the estimated-confidence uplift, VAT and all
+disbursements — captured at conversion) summed over matters in <code>instruction_accepted</code> / <code>pre_exchange</code> /
+<code>contracts_exchanged</code> (D-1/D-2). Subscription revenue = chargeable firms × £200/month (D-3). A firm
+becomes <strong>Chargeable</strong> the first time any of its transactions reaches <code>instruction_accepted</code>
+(<code>organisations.chargeable_since</code>, set once by <code>app/services/workflow.py</code>). The commercial block is a
+current-state snapshot and is not date-filtered.</p>
+<p><strong>Durable ranking positions.</strong> Every completed default (balanced) search records one
+<code>search_ranking_events</code> row per in-scope firm — including non-participating firms — grouped by a
+<code>search_id</code> (<code>app/api/public/search.py</code>). This is the underlying event data behind "searches appeared"
+and "latest consumer search"; it is exported, never presented raw.</p>
+<hr />
+<h2 id="10-dns-email-configuration">10. DNS &amp; email configuration<a class="headerlink" href="#10-dns-email-configuration" title="Permanent link">&para;</a></h2>
+<p>Transactional email is sent via <strong>SparkPost</strong> from a dedicated send-only subdomain
+<strong><code>mail.choosemylawyer.ai</code></strong>, kept entirely separate from the Microsoft 365 mailboxes on the root
+<code>@choosemylawyer.ai</code>. Full record-level runbook: <code>docs/dns-email-configuration.md</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Provider / sending domain</td>
+<td>SparkPost · <code>mail.choosemylawyer.ai</code></td>
+</tr>
+<tr>
+<td>From address / name</td>
+<td><code>noreply@mail.choosemylawyer.ai</code> · <code>Choose My Lawyer</code></td>
+</tr>
+<tr>
+<td>Audit BCC</td>
+<td><code>CML_AUDIT_EMAIL</code> (must be a deliverable M365 mailbox, e.g. <code>leads@choosemylawyer.ai</code>)</td>
+</tr>
+<tr>
+<td>DKIM</td>
+<td><code>scph0626._domainkey.mail</code> TXT</td>
+</tr>
+<tr>
+<td>Return-path / SPF alignment</td>
+<td>CNAME <code>mail</code> → <code>sparkpostmail.com</code> (strict alignment)</td>
+</tr>
+<tr>
+<td>DMARC</td>
+<td>root <code>_dmarc</code> <code>p=quarantine</code> (enforcing; relaxed alignment covers the subdomain)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Settings (<code>config.py</code>):</strong> <code>SPARKPOST_API_KEY</code> (empty ⇒ <strong>mock mode</strong>, logs only), <code>SPARKPOST_FROM_EMAIL</code>
+(default <code>noreply@mail.choosemylawyer.ai</code>), <code>SPARKPOST_FROM_NAME</code> (default <code>Choose My Lawyer</code>),
+<code>CML_AUDIT_EMAIL</code> (empty ⇒ no BCC).</p>
+<p><strong>"In the user's name" mechanic</strong> (<code>email.py</code>): firm-facing Proceed/Callback emails set
+<code>from_name</code> = the consumer's name, <code>reply_to</code> = the consumer's email, and <code>bcc</code> = the audit mailbox —
+so the firm sees the consumer in their inbox and Reply goes straight to them, while CML keeps an audit
+copy. Firm mail reaches a firm <strong>only</strong> via <code>organisation.referral_email</code>.</p>
+<blockquote>
+<p>⚠️ Because DMARC is enforcing, mail must send from <code>@mail.choosemylawyer.ai</code>. Until DKIM verifies
+(<code>dkim_status: valid</code>), SparkPost signs with its shared domain → DMARC fails → spam. Verify DKIM via
+the API, not the dashboard button (see the runbook).</p>
+</blockquote>
+<hr />
+<h2 id="11-email-workflow-scheduler-issues-949697155">11. Email workflow &amp; scheduler (issues #94/#96/#97/#155)<a class="headerlink" href="#11-email-workflow-scheduler-issues-949697155" title="Permanent link">&para;</a></h2>
+<p>Canonical copy/trigger/suppression spec: <code>docs/email-spec.md</code> (verbatim, with the <code>[D-n]</code> triage
+decisions applied). End-to-end lifecycle diagram: <code>docs/email-workflow-diagram.md</code>. This section is
+the as-built summary. The retired Phase F follow-up jobs (<code>followups.py</code> / <code>followup_tokens.py</code>)
+are fully superseded by this system.</p>
+<p>Issue #155: a SparkPost 500 on a Firm-01 referral was logged and dropped with no retry, no
+recorded reason and no alert. <code>send_email</code> (<code>app/services/email.py</code>) now classifies, retries and
+alerts on every send in this section — see "Send retry, failure classification and alerting"
+below.</p>
+<h3 id="workflow-states-appointmentsworkflow_state">Workflow states (<code>appointments.workflow_state</code>)<a class="headerlink" href="#workflow-states-appointmentsworkflow_state" title="Permanent link">&para;</a></h3>
+<p>Every Select instruction and every per-firm Callback request is one <code>appointments</code> row — its id is
+the <strong>CML Transaction ID</strong> — holding exactly one state, advanced only by
+<code>app/services/workflow.py</code> (which also appends one immutable <code>workflow_events</code> audit row per
+action: channel, actor, timestamp, detail, free-text note, and — where the action changes an
+already-recorded status — the mandatory <code>reason</code> for the change, issue #57).</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>referred</code></td>
+<td>Initial state — referral sent, no outcome reported</td>
+</tr>
+<tr>
+<td><code>instruction_accepted</code></td>
+<td>Firm reported the instruction effective — matter open, Firm-05 cycle starts</td>
+</tr>
+<tr>
+<td><code>unable_to_act</code></td>
+<td>Conflict or other valid reason (Non-Instruction Declaration recorded)</td>
+</tr>
+<tr>
+<td><code>unable_to_contact</code></td>
+<td>Two contact attempts failed (callback only)</td>
+</tr>
+<tr>
+<td><code>not_instructed</code></td>
+<td>Contact made, not instructed / engagement docs issued but not proceeding</td>
+</tr>
+<tr>
+<td><code>pre_exchange</code> → <code>contracts_exchanged</code></td>
+<td>Matter stages — forward-only; re-confirming the current stage is a valid periodic report</td>
+</tr>
+<tr>
+<td><code>completed</code> / <code>aborted</code></td>
+<td>Terminal — set by the Final Matter Report, which also stamps <code>appointments.billing_eligible_at</code></td>
+</tr>
+<tr>
+<td><code>voided</code></td>
+<td>Terminal — a CML admin action (issue #176), never a firm-reported outcome; releases the one-live-Select block, sends no email, and is excluded from the billing export</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reopen:</strong> a <code>not_instructed</code> referral can be reopened (subsequent instruction) to
+<code>instruction_accepted</code> — same transaction id, attribution and history, never a new referral; the
+Firm-05 schedule restarts from the reopen date.</p>
+<p><strong>One live Select per consumer (issue #176):</strong> <code>referred</code>, <code>instruction_accepted</code>, <code>pre_exchange</code>
+and <code>contracts_exchanged</code> are the <em>live</em> states (<code>LIVE_STATES</code> in <code>app/services/workflow.py</code>) —
+while a consumer's Select is in one of them, <code>POST /api/public/appointments</code> refuses a further
+Select for that session or that email address (case/whitespace-insensitive), even for the same
+firm, with a <code>409</code>. Every other state releases the block, including <code>voided</code>. An admin can void a
+live Select from the Operations Dashboard (<code>POST /api/admin/appointments/{id}/void</code>, reason
+required) — silent (no consumer/firm email) and excluded from the chargeable-events CSV export.</p>
+<h3 id="engagement-log-engagement-log-issue-161">Engagement Log (<code>/engagement-log</code>, issue #161)<a class="headerlink" href="#engagement-log-engagement-log-issue-161" title="Permanent link">&para;</a></h3>
+<p>A read-only firm-portal page (top-level, not nested under <code>/analytics</code>) listing every Callback and
+Select for the signed-in firm, newest first, paginated — reusing <code>GET /api/firm/analytics/engagements</code>
+unchanged. Two columns beyond the existing set: the CML Transaction ID (the appointment <code>id</code>,
+copyable) and a plain-English <code>workflow_state</code> label covering all ten states
+(<code>derive_firm_status_label</code> in <code>app/services/workflow.py</code> — distinct from the consumer-facing,
+lossy <code>status_label</code> in <code>workflow_emails.py</code>). <code>conflict_check_outcome</code> also now falls back to
+<code>unable_to_act</code> ⇒ <code>"conflict"</code> when no admin conflict check is recorded
+(<code>derive_conflict_check_outcome</code>), consistent across four surfaces that must stay in lockstep: the
+firm portal, the admin ledger (JSON + CSV) and the admin summary "Conflict checks" tile — the last
+of which re-derives the same rule in SQL in <code>app/api/admin/metrics.py</code> rather than calling the
+helper.</p>
+<p><strong>Outcome reporting from the portal (issue #57).</strong> The Engagement Log is now also a
+<em>write</em> surface — the second firm reporting route alongside the tokenised email links
+(D-1), not a replacement for them. Three endpoints, all authenticated with
+<code>get_current_user</code> and 404-ing (never 403) on another firm's referral:
+<code>GET /api/firm/engagements/{id}/reporting</code> (status, outcome options + flow requirements,
+current status label, and the full <code>workflow_events</code> audit trail oldest-first, with <code>note</code>
+returned only on firm-authored (email/portal) events so consumer comments and CML void
+reasons never reach the firm),
+<code>POST /api/firm/engagements/{id}/outcome</code> and
+<code>POST /api/firm/engagements/{id}/conflict-check</code> (which notifies the consumer on
+<code>conflict</code> through the same <code>email.schedule_conflict_check_failed</code> helper as the admin
+route). The rules — option set, Non-Instruction Declaration, judgment gate, two-attempts
+confirmation, acknowledgement copy, error codes — live once in
+<code>app/services/firm_reporting.py</code> and are shared with
+<code>app/api/public/workflow_responses.py</code>, so the two routes cannot drift; both dispatch the
+same <code>dispatch_outcome_emails</code> background task after commit, and both write the same
+<code>appointments.workflow_state</code>, so the daily email cycle's <code>referred</code> gate suppresses
+Firm-02/04, their reminders and exceptions whichever route reported.</p>
+<p>Portal writes are audited with <code>channel = portal</code> and the signed-in firm user's email as
+the <code>actor</code> (D-8). <strong>Latest report wins</strong> (D-3): a report that changes an already-recorded
+status takes effect from either route, but requires a brief free-text reason (D-4) — kept
+in the new <code>workflow_events.reason</code> column alongside the previous status, the new status,
+the timestamp, the route and the user. Nothing is overwritten: every report appends one
+row under the same <code>outcome_recorded</code> action key. Re-reporting the outcome already
+recorded is a 409 <code>already_recorded</code>, a change with no reason a 422 <code>reason_required</code>, and
+<code>completed</code> / <code>aborted</code> / <code>voided</code> (<code>TERMINAL_STATES</code>) a 409 <code>closed</code> directing the firm to
+CML (D-7).</p>
+<h3 id="email-inventory-template-keys-as-written-to-email_events">Email inventory (template keys as written to <code>email_events</code>)<a class="headerlink" href="#email-inventory-template-keys-as-written-to-email_events" title="Permanent link">&para;</a></h3>
+<p>Sender identity (D-7): everything is sent from CML; the two referral emails carry
+<code>reply-to</code> = consumer. The canonical Transaction Summary is rendered in full at the bottom of
+every email (D-8).</p>
+<table>
+<thead>
+<tr>
+<th>Template</th>
+<th>Trigger</th>
+<th>Suppressed when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>consumer_01</code> / <code>firm_01</code></td>
+<td>Callback request created (immediate)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>consumer_07</code> / <code>firm_03</code></td>
+<td>Select instruction created (immediate)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>firm_02</code> / <code>firm_04</code></td>
+<td>3rd / 10th working day after referral</td>
+<td>outcome already recorded</td>
+</tr>
+<tr>
+<td><code>consumer_02</code></td>
+<td>4th working day after callback submission (D-5; one per submission)</td>
+<td>every outcome recorded, or any firm instructed</td>
+</tr>
+<tr>
+<td><code>consumer_08</code></td>
+<td>5th working day after select instruction</td>
+<td>outcome recorded</td>
+</tr>
+<tr>
+<td><code>consumer_03</code> / <code>consumer_04</code> / <code>consumer_06</code></td>
+<td>Firm records unable-to-act / unable-to-contact / not-instructed</td>
+<td>another firm on the submission already instructed (<code>consumer_06</code>/others)</td>
+</tr>
+<tr>
+<td><code>consumer_05</code></td>
+<td>Firm records instruction accepted (either workflow); carries the CML feedback link</td>
+<td>second instruction on the same submission</td>
+</tr>
+<tr>
+<td><code>consumer_09</code></td>
+<td>Select firm unable to act; carries Contact CML (D-10) + tokenised results return (D-11)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>firm_05_p{n}</code></td>
+<td>Matter progress request: 10 weeks after instruction accepted, then monthly anniversaries of the instruction date, per period <em>n</em>, while the matter is open</td>
+<td>stage update already recorded in that reporting period (either channel); ceases at completed/aborted</td>
+</tr>
+<tr>
+<td><code>consumer_10</code> / <code>consumer_11</code></td>
+<td>Firm records matter completed / aborted via the Final Matter Report (issue #131)</td>
+<td>a review is already captured for the transaction</td>
+</tr>
+<tr>
+<td><code>*_reminder</code></td>
+<td>One per reporting action: Consumer-02 +5d, Consumer-05 +14d, Consumer-08 +5d, Consumer-10 +14d, Consumer-11 +21d (calendar); Firm-02/04 +5wd, Firm-05 +10wd</td>
+<td>action completed or state moved on</td>
+</tr>
+<tr>
+<td><code>firm_exception</code> / <code>firm_05_p{n}_exception</code></td>
+<td>Firm reminder unanswered after 5 further working days → one email to <code>CML_EXCEPTION_EMAIL</code>; automation for that action ends</td>
+<td>action completed after the reminder</td>
+</tr>
+<tr>
+<td><code>contact_cml</code></td>
+<td>Consumer submits the tokenised Contact CML form</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Consumer-10/11 (matter completed/aborted review emails, issue #131 — <code>[D-3 lifted:
+capture-only]</code>) are <strong>live</strong>: the Final Matter Report submission (above) sends the
+appropriate email, whose link opens a login-free, tokenised <code>/review/{token}</code> journey
+capturing one structured review per transaction — three star ratings plus price-integrity
+answers, free text kept separate — into the <code>consumer_reviews</code> table (§5). Capture-only
+means exactly that: the review is stored against the transaction and surfaced nowhere
+else — it is never published, never joins <code>reviews</code>, and feeds neither the ranking nor the
+displayed reputation aggregate, nor a firm notification. Firm-06 (review notification) and
+review <em>publication</em> (public display, moderation, firm responses) remain <strong>deferred</strong>
+(D-3).</p>
+<p><strong>Standalone sends (issue #155):</strong> four CML sends outside the workflow above previously wrote no
+<code>email_events</code> row at all — <code>conflict_check_failed</code>, <code>enrollment_invitation</code>, <code>user_invitation</code>,
+<code>password_reset</code> (<code>app/services/email.py</code>), each written with <code>appointment_id</code> NULL. Kept outside
+the <code>consumer_*</code>/<code>firm_*</code> prefixes above so the admin log's prefix-match template filter is
+unaffected.</p>
+<h3 id="action-tokens">Action tokens<a class="headerlink" href="#action-tokens" title="Permanent link">&para;</a></h3>
+<p>Every actionable email link carries a stateless HMAC-signed token (<code>app/services/action_tokens.py</code>):
+action + appointment id + expiry (+ optional context), signed with <code>SECRET_KEY</code>. TTL 60 days for
+firm reporting (<code>firm_report</code>, <code>matter_report</code>), feedback, Contact CML and the review link
+(<code>review</code>, issue #131 — long enough for the Consumer-11 reminder at 21 days plus a usable window
+after it); 30 days for consumer response and results-return links. Replay of a completed action is
+rejected by the state machine (friendly 409), not the token. Backend response surfaces
+(<code>app/api/public/workflow_responses.py</code>, mounted at <code>/api/public/workflow/</code>): <code>/firm-report/{token}</code>,
+<code>/matter-report/{token}</code>, <code>/progress/{token}</code>, <code>/contact-check/{token}</code>, <code>/feedback/{token}</code>,
+<code>/contact-cml/{token}</code>, <code>/results-return/{token}</code>, <code>/review/{token}</code> (GET context + POST submit) —
+the frontend page paths for the latter two are named <code>/update-progress/{token}</code> and
+<code>/return/{token}</code> (§4).</p>
+<p>The matter-report flow records pre-exchange / contracts-exchanged in one click; completed/aborted
+continue seamlessly into the <strong>Final Matter Report</strong> on the same page (outcome pre-populated and
+amendable, matter dates, final legal fee or confirmed none, price comparison vs the CML estimate
+with a reason when changed). Submission closes the workflow state, writes the full report detail to
+the audit trail and stamps <code>billing_eligible_at</code>.</p>
+<h3 id="scheduler-cycle">Scheduler cycle<a class="headerlink" href="#scheduler-cycle" title="Permanent link">&para;</a></h3>
+<p>One idempotent pass (<code>app/services/email_cycle.py::run_email_cycle</code>), run daily at 09:00
+Europe/London by the in-process APScheduler (<code>app/tasks/scheduler.py</code>). Whether an email is due is
+derived <strong>only</strong> from the current workflow state and working-day arithmetic (England &amp; Wales bank
+holidays hardcoded in <code>callback_windows.py</code>); the email-event log is consulted to dedupe — via
+<code>workflow_emails.already_attempted</code>, true only once a <code>sent</code> row exists, so a genuinely successful
+(transaction, template) pair is attempted at most once — and, for a <code>failed</code> row, via
+<code>workflow_emails.should_attempt</code> (issue #155), which governs retry eligibility instead (below). The
+log also anchors reminder/exception timing to the actual send date.</p>
+<h3 id="send-retry-failure-classification-and-alerting-issue-155">Send retry, failure classification and alerting (issue #155)<a class="headerlink" href="#send-retry-failure-classification-and-alerting-issue-155" title="Permanent link">&para;</a></h3>
+<p><code>send_email</code> (<code>app/services/email.py</code>) covers every send in this section, including the standalone
+sends above — one implementation rather than a referral-only fix, so a dropped password reset or
+firm invitation gets the same handling as a dropped referral (D-5). It returns a <code>SendResult</code>
+(<code>ok</code>/<code>reason</code>/<code>permanent</code>/<code>attempts</code>) rather than a bare <code>bool</code>; existing <code>if not ok:</code> call sites
+keep working because <code>SendResult.__bool__</code> mirrors <code>ok</code>.</p>
+<p><strong>Classification</strong> (<code>_classify_failure</code>): a SparkPost 4xx response (other than 429) is permanent;
+5xx, 429, <code>requests</code> timeout/connection errors, and anything unclassifiable are transient. A
+transmission the API accepts with zero accepted recipients is also treated as permanent — the
+address was rejected without raising.</p>
+<p><strong>In-process retry:</strong> a transient failure is retried within the same <code>send_email</code> call, up to
+<code>MAX_SEND_ATTEMPTS</code> (3) attempts total, sleeping <code>RETRY_BACKOFF_SECONDS</code> (<code>[10, 20]</code>, ~30s total)
+between them. Only the final attempt's outcome is written to <code>email_events</code> — a send that recovers
+leaves no <code>failed</code> row and raises no alert. Because a single call can block for up to ~30s, no caller
+may <code>await send_email</code> (or a wrapper of it) synchronously from a request handler: every send —
+referrals (<code>app/api/public/callbacks.py</code>, <code>app/api/public/appointments.py</code>), conflict-check
+(<code>app/api/admin/appointments.py</code>), enrollment/user invitation and password reset
+(<code>app/api/admin/organisations.py</code>, <code>app/api/firm/auth.py</code>) and session-save
+(<code>app/api/public/sessions.py</code>) — runs via <code>BackgroundTasks</code>, off the request path. The four
+standalone senders that used to take the request's own DB session (<code>send_enrollment_invitation</code>,
+<code>send_user_invitation</code>, <code>send_password_reset_email</code>, <code>send_session_save_email</code>) now open and commit
+a short-lived session of their own instead, matching <code>send_conflict_check_failed</code>.</p>
+<p><strong>Permanent-failure alerting</strong> (<code>_alert_permanent_failure</code>, in <code>email.py</code> so it covers every send):
+fires immediately, once, via a bare <code>send_email</code> call — never through <code>_send_and_log</code> — so the alert
+itself cannot be classified and recursively re-alerted. The alert email identifies the recipient,
+template, transaction id (where there is one), firm/consumer context, failure reason and attempts.</p>
+<p><strong>Durable sweep</strong> (<code>app/services/email_cycle.py</code>, called from <code>run_email_cycle</code>):
+<code>_retry_outcome_and_review_due</code> re-invokes <code>send_outcome_email</code>/<code>send_review_email</code> for a transient
+failure whose template (Consumer-03/04/05/06/09/10/11) has no daily due-scan of its own, and
+<code>_retry_referral_due</code> does the same for the referral/confirmation templates (Firm-01/03,
+Consumer-01/07 — <code>referral_emails.py</code>), re-rendering from the stored <code>Appointment</code> + <code>ChatSession</code> via
+the same <code>_callback_context</code>/<code>_firm_referral</code>/<code>_submission_data</code> helpers <code>dispatch_callback_emails</code> /
+<code>dispatch_select_emails</code> use (Consumer-01 reconstructs every sibling firm in the submission, not just
+the one appointment the failed row happens to be keyed to; Firm-03 preserves the <em>original</em> send date
+in its "call by"/"pack by" copy, not the retry's own clock). Every other retriable template is already
+re-attempted naturally each time its own "due" gate re-runs <code>should_attempt</code>. <code>should_attempt</code>
+(<code>workflow_emails.py</code>) allows at most one attempt per London calendar day, only while the pair's first
+attempt is within <code>RETRY_WINDOW</code> (2 days) of <code>now</code>, and never for a <code>permanent</code> failure.</p>
+<p><code>_retry_exhaustion_due</code> then scans the log directly (not a "due" condition, so it also catches a send
+whose business trigger went moot before the window expired) for <strong>every</strong> failed transient send past
+<code>RETRY_WINDOW</code> — not only the templates the sweep above can reconstruct: whether a send is retriable
+never gates whether it is alerted. Appointment-scoped sends are deduped per (appointment_id, template)
+pair; the appointment-less standalone sends in <code>email.py</code> (password reset, contact form, session save,
+enrollment/user invitation, conflict-check) have nothing that ever retries them, so each failed row is
+its own complete attempt history, deduped by the row's own id. Either way CML gets one exception email
+via <code>_send_retry_exhausted_alert</code>, deduped by a marker row — keyed <code>exp_&lt;template&gt;</code> (appointment-scoped)
+or <code>exp_&lt;event id&gt;</code> (appointment-less), truncated to the <code>template</code> column's <code>String(32)</code>. A prefix
+(<code>exp_</code>) rather than the original suffix scheme (<code>template + "_exp"</code>, e.g. <code>firm_02_exp</code>): a suffix
+sits <em>inside</em> the <code>consumer_*</code>/<code>firm_*</code> prefixes <code>/admin/email-log</code>'s template filter matches on and
+appeared as a pseudo-send. The marker is written unconditionally regardless of the alert's own
+outcome, so a failed alert send cannot trigger a re-alert next cycle — but it records that outcome
+<em>truthfully</em> (<code>sent</code> or <code>failed</code>, with the alert's own failure reason), and dedup is "does any row
+exist for this marker" rather than "does a <code>sent</code> row exist", so a truthful <code>failed</code> marker does not
+reopen the door to re-alerting. Both exhaustion scans exclude marker rows themselves (<code>exp_%</code>), so a
+<code>failed</code> marker is never picked up as a fresh candidate by a later pass.</p>
+<p><code>already_attempted</code> (<code>workflow_emails.py</code>) now counts only <code>sent</code> rows (issue #155 D-3) — previously
+a <code>failed</code> row also counted as "attempted", which was silently blocking retry of every workflow email
+that had ever failed once. Its remaining caller (<code>workflow_emails.py:1118</code>, suppressing a second
+Consumer-05 on the same submission) and the exhaustion-marker dedup above are the only sites where
+"did this genuinely succeed" is the right question; every retry/gating site uses <code>should_attempt</code>.</p>
+<h3 id="email-event-log-admin-visibility">Email-event log &amp; admin visibility<a class="headerlink" href="#email-event-log-admin-visibility" title="Permanent link">&para;</a></h3>
+<p>Every send writes one <code>email_events</code> row (recipient, template key, transaction id, API-level
+sent/failed — no delivery webhooks). A <code>failed</code> row also carries <code>failure_reason</code> (provider message,
+truncated to <code>FAILURE_REASON_MAX_LENGTH</code>/500 chars so a long message can't fail the write) and
+<code>failure_classification</code> (<code>transient</code>/<code>permanent</code>) — added by Alembic <code>0002</code>, additive and nullable,
+so pre-<code>0002</code> <code>failed</code> rows keep both columns NULL. <code>GET /api/admin/email-log</code> (X-Admin-Key) serves
+it paginated with filters (transaction, firm, template prefix, date range) and now includes the
+failure reason; the admin UI at <code>/admin/email-log</code> displays it and visually distinguishes failed rows
+from sent ones (no resend control — manual intervention only, D-10).</p>
+<hr />
+<h2 id="12-deployment-environment-variables">12. Deployment &amp; environment variables<a class="headerlink" href="#12-deployment-environment-variables" title="Permanent link">&para;</a></h2>
+<p>Two Railway services (<code>backend</code>, <code>frontend</code>) from Dockerfiles + a managed Postgres add-on. Backend
+<code>start.sh</code> runs <code>alembic upgrade head</code> then Uvicorn. Frontend <code>NEXT_PUBLIC_*</code> vars are <strong>build-time</strong>
+(set as Railway <em>build variables</em>, not runtime env).</p>
+<p><strong>Backend env</strong> (required unless noted):</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Req</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>✅</td>
+<td>PG reference; <code>postgresql://</code> auto-converted to <code>postgresql+asyncpg://</code> by <code>config.py</code></td>
+</tr>
+<tr>
+<td><code>SECRET_KEY</code></td>
+<td>✅</td>
+<td>JWT signing + HMAC follow-up tokens</td>
+</tr>
+<tr>
+<td><code>ADMIN_API_KEY</code></td>
+<td>✅</td>
+<td><code>X-Admin-Key</code> value for <code>/api/admin/*</code> (empty ⇒ all admin routes 401)</td>
+</tr>
+<tr>
+<td><code>ENVIRONMENT</code></td>
+<td>✅</td>
+<td><code>production</code> enables HSTS</td>
+</tr>
+<tr>
+<td><code>APP_URL</code></td>
+<td>✅</td>
+<td>Frontend URL (email links, deep links)</td>
+</tr>
+<tr>
+<td><code>API_URL</code></td>
+<td>✅</td>
+<td>Backend URL (logged on startup)</td>
+</tr>
+<tr>
+<td><code>CORS_ORIGINS</code></td>
+<td>✅</td>
+<td>Comma-separated; include Railway subdomain + custom domain during cutover</td>
+</tr>
+<tr>
+<td><code>SPARKPOST_API_KEY</code></td>
+<td>for email</td>
+<td>Empty ⇒ mock mode (logs only)</td>
+</tr>
+<tr>
+<td><code>SPARKPOST_FROM_EMAIL</code> / <code>_FROM_NAME</code></td>
+<td>for email</td>
+<td>Verified sender; defaults to <code>noreply@mail.choosemylawyer.ai</code> / <code>Choose My Lawyer</code></td>
+</tr>
+<tr>
+<td><code>CML_AUDIT_EMAIL</code></td>
+<td>optional</td>
+<td>Audit BCC mailbox</td>
+</tr>
+<tr>
+<td><code>CML_EXCEPTION_EMAIL</code></td>
+<td>optional</td>
+<td>Firm-reporting exception mailbox (default <code>info@choosemylawyer.ai</code>, §11)</td>
+</tr>
+<tr>
+<td><code>CONTACT_EMAIL</code></td>
+<td>optional</td>
+<td>Destination for contact-form submissions (default <code>info@choosemylawyer.ai</code>)</td>
+</tr>
+<tr>
+<td><code>LOGIN_REQUEST_PARTICIPATING_EMAIL</code> / <code>LOGIN_REQUEST_LEAD_EMAIL</code></td>
+<td>optional</td>
+<td>"Request login details" relay (#192): a request matching an enrolled firm goes to the first, an unmatched one to the second; each defaults to <code>CONTACT_EMAIL</code> when unset</td>
+</tr>
+<tr>
+<td><code>ADDRESS_LOOKUP_API_KEY</code></td>
+<td>optional</td>
+<td>Ideal Postcodes key for the address-lookup proxy (§3, #127); empty ⇒ lookup unavailable, journey forms fall back to manual entry</td>
+</tr>
+<tr>
+<td><code>JWT_ALGORITHM</code> / <code>JWT_EXPIRY_HOURS</code></td>
+<td>optional</td>
+<td><code>HS256</code> / <code>8</code> (local <code>docker-compose.yml</code> overrides to <code>24</code> for dev convenience)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Frontend build variables</strong> (all <code>NEXT_PUBLIC_*</code> — baked into the bundle at build time via
+Dockerfile <code>ARG</code>s; changing one requires a rebuild, not a restart):</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Deployed value (production)</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NEXT_PUBLIC_API_URL</code></td>
+<td>backend Railway URL</td>
+<td>Backend base URL for the API client</td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_GTM_ID</code></td>
+<td><code>GTM-KCRH887D</code></td>
+<td>Google Tag Manager container (consent-gated, §9); absent ⇒ GTM disabled</td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_META_PIXEL_ID</code></td>
+<td><strong>not yet set</strong></td>
+<td>Meta Pixel (consent-gated, §9); absent ⇒ Pixel disabled even with consent</td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_APP_URL</code></td>
+<td><strong>not yet set</strong></td>
+<td>Production-mode gate for <code>robots.ts</code>/metadata — must be <code>https://choosemylawyer.ai</code> at go-live or prod serves <code>Disallow: /</code> + noindex (issue #68); also needs an <code>ARG</code> adding to <code>frontend/Dockerfile</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cloudflare DNS:</strong> <code>choosemylawyer.ai</code> proxied through Cloudflare in <strong>Full (strict)</strong> mode; CNAME the
+apex + <code>www</code> to the Railway frontend and <code>api</code> to the backend. Email TXT/CNAME records per §10.</p>
+<h3 id="operational-gotchas-lessons-learned">Operational gotchas (lessons learned)<a class="headerlink" href="#operational-gotchas-lessons-learned" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong><code>NEXT_PUBLIC_*</code> are build-time</strong> — set as Railway build variables; runtime-only env yields
+   <code>undefined</code> in the browser bundle.</li>
+<li><strong>Railway injects <code>PORT</code></strong> — use <code>${PORT:-8000}</code> in the backend CMD.</li>
+<li><strong>DB URL protocol</strong> — Railway gives <code>postgresql://</code>; asyncpg needs <code>postgresql+asyncpg://</code> (handled
+   by <code>config.py</code>).</li>
+<li><strong>Pre-launch schema policy</strong> — <code>0001_initial_schema.py</code> is edited in place; an in-place edit
+   <strong>no-ops on an already-migrated DB</strong>, so schema changes require a wipe-and-reseed (often surfacing as
+   a 500 that looks like CORS). See <code>docs/admin-guide.md</code>.</li>
+<li><strong><code>.env</code> changes need <code>docker-compose up -d</code> (recreate)</strong>, not <code>restart</code>.</li>
+<li><strong>CORS</strong> must include both the Railway subdomain and the custom domain during cutover.</li>
+</ol>
+<hr />
+<h2 id="13-supporting-documents">13. Supporting documents<a class="headerlink" href="#13-supporting-documents" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Doc</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docs/requirements.md</code> (<strong>Annex One</strong>)</td>
+<td>Canonical functional spec + source-of-truth ranking/pricing numbers</td>
+</tr>
+<tr>
+<td><code>docs/admin-guide.md</code></td>
+<td>Operations runbook (enrolment, reseeds, email testing)</td>
+</tr>
+<tr>
+<td><code>ITERATIONS.md</code></td>
+<td>Forward-looking backlog</td>
+</tr>
+<tr>
+<td><code>docs/ranking-algorithm-worked-examples.md</code></td>
+<td>Worked ranking datasets / engine verification</td>
+</tr>
+<tr>
+<td><code>docs/engine-tweaks.md</code></td>
+<td>The distance-banding, balanced-weights and 20%-uplift change spec</td>
+</tr>
+<tr>
+<td><code>docs/architecture/postcode-distance.md</code></td>
+<td>Distance factor deep-dive</td>
+</tr>
+<tr>
+<td><code>docs/dns-email-configuration.md</code></td>
+<td>Record-level DNS/email runbook</td>
+</tr>
+<tr>
+<td><code>docs/design/</code></td>
+<td>Visual design system (Figma exports, palette, components)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="known-divergences-as-built-vs-older-docs-spec">Known divergences (as-built vs older docs / spec)<a class="headerlink" href="#known-divergences-as-built-vs-older-docs-spec" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The CPS "Don't know" pricing consequence beyond "never apply the modifier" is still undefined —
+  blocked on a CPS update (§6).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="./.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Overview
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../ranking-algorithm-worked-examples/" class="md-footer__link md-footer__link--next" aria-label="Next: Ranking — worked examples">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Ranking — worked examples
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Choose My Lawyer
+
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6970bfe9.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,4499 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="As-built technical documentation for the Choose My Lawyer legal comparison platform: system design, ranking methodology, email workflow, and operations.">
+      
+      
+        <meta name="author" content="Choose My Lawyer">
+      
+      
+        <link rel="canonical" href="https://tomstagg.github.io/cml-docs/ranking-algorithm-worked-examples/">
+      
+      
+        <link rel="prev" href="../system-design/">
+      
+      
+        <link rel="next" href="../email-workflow-diagram/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.59">
+    
+    
+      
+        <title>Ranking — worked examples - Choose My Lawyer — Technical Documentation</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.5da3a30f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cml-ranking-algorithm-balanced-scorecard-worked-examples" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-header__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Choose My Lawyer — Technical Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ranking — worked examples
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Choose My Lawyer — Technical Documentation" class="md-nav__button md-logo" aria-label="Choose My Lawyer — Technical Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Choose My Lawyer — Technical Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Overview
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  System design
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Ranking — worked examples
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Ranking — worked examples
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-each-factor-score-is-produced" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        How each factor score is produced
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-a-purchase-freehold-250k-mortgage-birmingham-b1-2jb-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario A — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB (baseline)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario A — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB (baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-95-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>95</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 23)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-derivation-by-hand-baseline-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Re-derivation by hand (baseline scenario)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-b-purchase-leasehold-250k-mortgage-birmingham-b1-2jb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario B — Purchase · leasehold · £250k · mortgage · Birmingham B1 2JB
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario B — Purchase · leasehold · £250k · mortgage · Birmingham B1 2JB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-94-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-90-market-rank-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>90</strong> (market rank 24)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-c-sale-freehold-250k-birmingham-b1-2jb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario C — Sale · freehold · £250k · Birmingham B1 2JB
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario C — Sale · freehold · £250k · Birmingham B1 2JB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-95-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>95</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 24)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-d-purchase-freehold-250k-mortgage-no-postcode-distance-excluded" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario D — Purchase · freehold · £250k · mortgage · NO postcode (distance excluded)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario D — Purchase · freehold · £250k · mortgage · NO postcode (distance excluded)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-94-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-90-market-rank-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>90</strong> (market rank 30)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-e-purchase-freehold-250k-mortgage-birmingham-b1-2jb-price-priority-scorecard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario E — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · PRICE priority scorecard
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario E — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · PRICE priority scorecard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-94-market-rank-1_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-92-market-rank-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>92</strong> (market rank 10)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-f-purchase-freehold-250k-mortgage-birmingham-b1-2jb-solar-panels-existing-tenancy-estate-management-charge-cps-pricing-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario F — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · solar panels + existing tenancy + estate management charge (CPS pricing items)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario F — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · solar panels + existing tenancy + estate management charge (CPS pricing items)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-93-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>93</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 7)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cps-pricing-item-breakdown-firm-002" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        CPS pricing-item breakdown — Firm 002
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observations-from-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Observations from the data
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Deviations
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../email-workflow-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Email workflow
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Admin guide
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-each-factor-score-is-produced" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        How each factor score is produced
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-a-purchase-freehold-250k-mortgage-birmingham-b1-2jb-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario A — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB (baseline)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario A — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB (baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-95-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>95</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 23)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-derivation-by-hand-baseline-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Re-derivation by hand (baseline scenario)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-b-purchase-leasehold-250k-mortgage-birmingham-b1-2jb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario B — Purchase · leasehold · £250k · mortgage · Birmingham B1 2JB
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario B — Purchase · leasehold · £250k · mortgage · Birmingham B1 2JB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-94-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-90-market-rank-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>90</strong> (market rank 24)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-c-sale-freehold-250k-birmingham-b1-2jb" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario C — Sale · freehold · £250k · Birmingham B1 2JB
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario C — Sale · freehold · £250k · Birmingham B1 2JB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-95-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>95</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 24)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-d-purchase-freehold-250k-mortgage-no-postcode-distance-excluded" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario D — Purchase · freehold · £250k · mortgage · NO postcode (distance excluded)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario D — Purchase · freehold · £250k · mortgage · NO postcode (distance excluded)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-94-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-90-market-rank-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>90</strong> (market rank 30)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-e-purchase-freehold-250k-mortgage-birmingham-b1-2jb-price-priority-scorecard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario E — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · PRICE priority scorecard
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario E — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · PRICE priority scorecard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-073-overall-94-market-rank-1_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 073 → overall <strong>94</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-92-market-rank-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>92</strong> (market rank 10)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-f-purchase-freehold-250k-mortgage-birmingham-b1-2jb-solar-panels-existing-tenancy-estate-management-charge-cps-pricing-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scenario F — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · solar panels + existing tenancy + estate management charge (CPS pricing items)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario F — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · solar panels + existing tenancy + estate management charge (CPS pricing items)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#full-market-ranking_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Full-market ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#worked-calculations_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Worked calculations
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Worked calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#firm-153-overall-93-market-rank-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 153 → overall <strong>93</strong> (market rank 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firm-001-overall-91-market-rank-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Firm 001 → overall <strong>91</strong> (market rank 7)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cps-pricing-item-breakdown-firm-002" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        CPS pricing-item breakdown — Firm 002
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top-5-contactable-extraction_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Top-5 contactable extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observations-from-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Observations from the data
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Deviations
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="cml-ranking-algorithm-balanced-scorecard-worked-examples">CML ranking algorithm — balanced scorecard worked examples<a class="headerlink" href="#cml-ranking-algorithm-balanced-scorecard-worked-examples" title="Permanent link">&para;</a></h1>
+<p><em>Read-only analysis. Generated by driving the live runtime path (<code>app.services.search.search_firms</code>)
+against the local <code>cml_db</code> for six intake scenarios (Annex One §5.3, post-#55/#83), then re-deriving
+every intermediate with the same primitive functions and cross-checking against the engine output.
+No runtime code was changed to produce this document.</em></p>
+<p><strong>Generated:</strong> 2026-07-08 · <strong>Commit:</strong> <code>ca26d3f</code> · <strong>Seed data:</strong> Master Export 07.07.26 (190 firms)</p>
+<h2 id="how-each-factor-score-is-produced">How each factor score is produced<a class="headerlink" href="#how-each-factor-score-is-produced" title="Permanent link">&para;</a></h2>
+<p>All six factor scores are 0–100, held at full precision; only the final weighted overall is
+rounded to an integer for display (<code>search.py</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Type</th>
+<th>How it is scored at runtime</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reputation</strong></td>
+<td>Relative (min–max)</td>
+<td>Stored <code>adjusted_reputation_value</code> (ARV) per firm, then <code>(ARV − ARV_min)/(ARV_max − ARV_min)×100</code> across the priced results set. ARV spec = <code>rating×(1+k·ln(reviews+1))</code>, k=0.025 (Annex One §5.6). All-equal → 50.</td>
+<td><code>ranking.normalise_reputation</code></td>
+</tr>
+<tr>
+<td><strong>Price</strong></td>
+<td>Relative (min–max)</td>
+<td>Total Effective Price per firm, then <code>(P_max − P)/(P_max − P_min)×100</code> (lower price → higher score). All-equal → 50.</td>
+<td><code>price_calc</code> + <code>ranking.normalise_price</code></td>
+</tr>
+<tr>
+<td><strong>Complaints</strong></td>
+<td>Absolute</td>
+<td>Pre-computed in the Master Export workbook (base 100 − Σ LeO deductions), stored on the firm; consumed verbatim. Default 100 if no summary.</td>
+<td><code>organisation.complaints_summary.score</code></td>
+</tr>
+<tr>
+<td><strong>Regulatory</strong></td>
+<td>Absolute</td>
+<td>Pre-computed (base 100 − Σ SRA/SDT deductions, no floor), stored; consumed verbatim. SRA intervention → firm excluded upstream. Default 100.</td>
+<td><code>organisation.regulatory_summary.score</code></td>
+</tr>
+<tr>
+<td><strong>Distance</strong></td>
+<td>Absolute (banded, miles)</td>
+<td>Geodesic miles from user postcode to nearest office, then banded: 0–2→100, 2–5→95, 5–10→85, 10–15→70, 15–25→50, 25–40→25, 40+→10. Excluded if no postcode.</td>
+<td><code>search.haversine_km</code> + <code>ranking.score_distance</code></td>
+</tr>
+<tr>
+<td><strong>Offices</strong></td>
+<td>Absolute (banded)</td>
+<td>1→70, 2–3→78, 4–6→85, 7–10→90, 11–20→95, 21+→100.</td>
+<td><code>ranking.score_offices</code></td>
+</tr>
+</tbody>
+</table>
+<p>Balanced weights (<code>scorecard.SCORECARDS['balanced']</code>): Reputation 27, Price 23, Complaints 15,
+Regulatory 15, Distance 10, Offices 10. Overall = Σ(score×weight)/100. When the user gives no
+postcode, distance weight → 0 and the remaining five are proportionally rescaled to sum to 100
+(<code>resolve_weights</code>).</p>
+<p><strong>Firms without a usable quote</strong> for the intake (no price card, <code>price_type=no_data</code>, or every
+anchor withheld) are ranked <em>after</em> all priced firms, using the remaining five factors rescaled to
+100 (price omitted) — see <code>search.py</code>'s price-less path (issue #50). They are never eligible for
+the top-5 contactable set regardless of enrolment.</p>
+<p><strong>Sequencing (§3.5):</strong> the full WMCA market is ranked first; the top-5 <em>contactable</em> (enrolled +
+active-in-pilot, with a usable quote) firms are then extracted from that single ranking — enrolled
+firms are never ranked separately.</p>
+<p><strong>Tie-break (§11):</strong> overall → reputation → complaints → regulatory → price → distance → offices → alphabetical.</p>
+<hr />
+<h2 id="scenario-a-purchase-freehold-250k-mortgage-birmingham-b1-2jb-baseline">Scenario A — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB (baseline)<a class="headerlink" href="#scenario-a-purchase-freehold-250k-mortgage-birmingham-b1-2jb-baseline" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Distance included:</strong> True</li>
+<li><strong>Firms ranked (full market):</strong> 190 (95 priced, 95 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 27, Price 23, Complaints 15, Regulatory 15, Distance 10, Offices 10</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£1,748.00</code> … max <code>£8,477.60</code></p>
+<h3 id="full-market-ranking">Full-market ranking<a class="headerlink" href="#full-market-ranking" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90.75</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>95</strong></td>
+<td style="text-align: right;">£2,370.27</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">91.28</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>95</strong></td>
+<td style="text-align: right;">£2,334.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">92.34</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,263.71</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">92.55</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,249.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">91.09</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,347.52</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">86.63</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,647.90</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">96.38</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,991.84</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">98.43</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,853.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">94.01</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,151.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 121</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.04</td>
+<td style="text-align: right;">83.92</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,829.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">92.01</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,285.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 182</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.58</td>
+<td style="text-align: right;">90.83</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,364.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 167</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.93</td>
+<td style="text-align: right;">89.87</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,429.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 017</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">89.78</td>
+<td style="text-align: right;">82.28</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,940.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">95.97</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,019.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 133</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.03</td>
+<td style="text-align: right;">81.65</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,982.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 066</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">98.38</td>
+<td style="text-align: right;">73.40</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,538.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">94.15</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,141.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 142</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.66</td>
+<td style="text-align: right;">76.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,300.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 101</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.42</td>
+<td style="text-align: right;">89.76</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,436.80</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">23</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">99.02</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,814.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">35</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">86.66</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>89</strong></td>
+<td style="text-align: right;">£2,645.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">36</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">83.24</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>89</strong></td>
+<td style="text-align: right;">£2,876.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">73</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">41.23</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>79</strong></td>
+<td style="text-align: right;">£5,702.72</td>
+</tr>
+<tr>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">89.27</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>67</strong></td>
+<td style="text-align: right;">£2,469.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">140</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations">Worked calculations<a class="headerlink" href="#worked-calculations" title="Permanent link">&para;</a></h3>
+<h4 id="firm-153-overall-95-market-rank-1">Firm 153 → overall <strong>95</strong> (market rank 1)<a class="headerlink" href="#firm-153-overall-95-market-rank-1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>252</code>, stored ARV <code>5.3648</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5778)</em></li>
+<li>Normalised reputation score (engine output): <strong>100.00</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£975.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Identity Verification £15.80; Onboarding Fee £20.00; Bank Transfer Administration Fee £36.00; File Storage Fee £30.00; SDLT Submission Administration Fee £72.00] → fees subtotal <code>£1,298.80</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £259.76 + VAT <code>£311.71</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£2,370.27</code></strong> → normalised price score: <strong>90.75</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: 0.9 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(100.0000×27.000 + 90.7532×23.000 + 100.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 70.0000×10.000) / 100</code> = <code>94.8732</code> → rounded <strong>95</strong> (engine: <strong>95</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-91-market-rank-23">Firm 001 → overall <strong>91</strong> (market rank 23)<a class="headerlink" href="#firm-001-overall-91-market-rank-23" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£745.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £80.00] → fees subtotal <code>£1,095.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£219.00</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£1,814.00</code></strong> → normalised price score: <strong>99.02</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: 0.5 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×27.000 + 99.0193×23.000 + 63.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 90.0000×10.000) / 100</code> = <code>90.6146</code> → rounded <strong>91</strong> (engine: <strong>91</strong>  ✓ matches)</p>
+<h3 id="re-derivation-by-hand-baseline-scenario">Re-derivation by hand (baseline scenario)<a class="headerlink" href="#re-derivation-by-hand-baseline-scenario" title="Permanent link">&para;</a></h3>
+<p>For the market leader <strong>Firm 153</strong>, summing the six weighted factor scores by hand from the table above: reputation 100.0000×27.000 + price 90.7532×23.000 + complaints 100.0000×15.000 + regulatory 100.0000×15.000 + distance 100.0000×10.000 + offices 70.0000×10.000, all divided by 100, gives <code>94.873245</code>, which rounds to <strong>95</strong>. The engine returned <strong>95</strong> for this firm — an exact match.</p>
+<h3 id="top-5-contactable-extraction">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">23</td>
+<td>Firm 001</td>
+<td style="text-align: right;">91</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">35</td>
+<td>Firm 010</td>
+<td style="text-align: right;">89</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">36</td>
+<td>Firm 002</td>
+<td style="text-align: right;">89</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">73</td>
+<td>Firm 012</td>
+<td style="text-align: right;">79</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: right;">67</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<hr />
+<h2 id="scenario-b-purchase-leasehold-250k-mortgage-birmingham-b1-2jb">Scenario B — Purchase · leasehold · £250k · mortgage · Birmingham B1 2JB<a class="headerlink" href="#scenario-b-purchase-leasehold-250k-mortgage-birmingham-b1-2jb" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Distance included:</strong> True</li>
+<li><strong>Firms ranked (full market):</strong> 190 (89 priced, 101 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 27, Price 23, Complaints 15, Regulatory 15, Distance 10, Offices 10</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£1,748.00</code> … max <code>£8,477.60</code></p>
+<h3 id="full-market-ranking_1">Full-market ranking<a class="headerlink" href="#full-market-ranking_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">88.07</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,550.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 029</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.95</td>
+<td style="text-align: right;">89.76</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,436.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.40</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,730.27</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">91.27</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,335.71</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 121</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.04</td>
+<td style="text-align: right;">88.20</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,541.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">88.95</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,491.52</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">94.01</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,151.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">93.70</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,171.84</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">85.06</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,753.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 066</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">98.38</td>
+<td style="text-align: right;">73.40</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,538.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">79.14</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,151.90</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 142</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.66</td>
+<td style="text-align: right;">76.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,300.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 167</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.93</td>
+<td style="text-align: right;">86.66</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,645.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 133</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.03</td>
+<td style="text-align: right;">79.09</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,155.36</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">92.65</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,242.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">92.01</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,285.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 048</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">91.80</td>
+<td style="text-align: right;">78.64</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,185.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">85.59</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,717.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">90.96</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,356.16</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 062</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">98.90</td>
+<td style="text-align: right;">72.33</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,610.40</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">24</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">95.45</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,054.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">31</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">84.52</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">£2,789.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">39</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">77.89</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>87</strong></td>
+<td style="text-align: right;">£3,236.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">69</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">30.53</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>77</strong></td>
+<td style="text-align: right;">£6,422.72</td>
+</tr>
+<tr>
+<td style="text-align: right;">77</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">87.13</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>66</strong></td>
+<td style="text-align: right;">£2,613.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">137</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations_1">Worked calculations<a class="headerlink" href="#worked-calculations_1" title="Permanent link">&para;</a></h3>
+<h4 id="firm-073-overall-94-market-rank-1">Firm 073 → overall <strong>94</strong> (market rank 1)<a class="headerlink" href="#firm-073-overall-94-market-rank-1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>185</code>, stored ARV <code>5.3390</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5402)</em></li>
+<li>Normalised reputation score (engine output): <strong>99.52</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£1,000.00</code> + modifiers [Acting for Lender £199.00] + additional costs [Identity Verification £25.00; Onboarding Fee £30.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £100.00] → fees subtotal <code>£1,424.00</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £284.80 + VAT <code>£341.76</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£2,550.56</code></strong> → normalised price score: <strong>88.07</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: 1.9 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(99.5183×27.000 + 88.0742×23.000 + 100.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 70.0000×10.000) / 100</code> = <code>94.1270</code> → rounded <strong>94</strong> (engine: <strong>94</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-90-market-rank-24">Firm 001 → overall <strong>90</strong> (market rank 24)<a class="headerlink" href="#firm-001-overall-90-market-rank-24" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£945.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £80.00] → fees subtotal <code>£1,295.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£259.00</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£2,054.00</code></strong> → normalised price score: <strong>95.45</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: 0.5 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×27.000 + 95.4529×23.000 + 63.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 90.0000×10.000) / 100</code> = <code>89.7943</code> → rounded <strong>90</strong> (engine: <strong>90</strong>  ✓ matches)</p>
+<h3 id="top-5-contactable-extraction_1">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">24</td>
+<td>Firm 001</td>
+<td style="text-align: right;">90</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">31</td>
+<td>Firm 010</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">39</td>
+<td>Firm 002</td>
+<td style="text-align: right;">87</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">69</td>
+<td>Firm 012</td>
+<td style="text-align: right;">77</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">77</td>
+<td>Firm 011</td>
+<td style="text-align: right;">66</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<hr />
+<h2 id="scenario-c-sale-freehold-250k-birmingham-b1-2jb">Scenario C — Sale · freehold · £250k · Birmingham B1 2JB<a class="headerlink" href="#scenario-c-sale-freehold-250k-birmingham-b1-2jb" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>There is no remortgage pathway in the intake — <code>app.services.chat</code> exposes exactly three transaction types (<code>buying</code>, <code>selling</code>, <code>selling_and_buying</code>), all pricing/routing derived from Q1. Remortgage is therefore omitted, not merely unexercised.</p>
+</blockquote>
+<ul>
+<li><strong>Distance included:</strong> True</li>
+<li><strong>Firms ranked (full market):</strong> 190 (93 priced, 97 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 27, Price 23, Complaints 15, Regulatory 15, Distance 10, Offices 10</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£858.00</code> … max <code>£7,560.00</code></p>
+<h3 id="full-market-ranking_2">Full-market ranking<a class="headerlink" href="#full-market-ranking_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">91.85</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>95</strong></td>
+<td style="text-align: right;">£1,404.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">89.67</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>95</strong></td>
+<td style="text-align: right;">£1,550.59</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">92.36</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£1,370.30</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">94.87</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£1,202.11</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">93.79</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£1,274.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 142</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.66</td>
+<td style="text-align: right;">86.91</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£1,735.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">92.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£1,332.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 066</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">98.38</td>
+<td style="text-align: right;">81.22</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,116.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 048</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">91.80</td>
+<td style="text-align: right;">87.56</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£1,692.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 121</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.04</td>
+<td style="text-align: right;">86.63</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£1,753.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">99.37</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£900.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">96.56</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,088.64</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">92.39</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,368.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 182</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.58</td>
+<td style="text-align: right;">91.21</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,447.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 017</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">89.78</td>
+<td style="text-align: right;">82.61</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,023.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">91.57</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,423.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">95.51</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,159.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 136</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">95.04</td>
+<td style="text-align: right;">87.88</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,670.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">94.54</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,224.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 114</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">92.34</td>
+<td style="text-align: right;">89.60</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,555.20</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">24</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">99.10</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£918.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">29</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">88.95</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£1,598.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">42</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">84.66</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">£1,886.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">70</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">52.15</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>82</strong></td>
+<td style="text-align: right;">£4,065.12</td>
+</tr>
+<tr>
+<td style="text-align: right;">81</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">90.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>67</strong></td>
+<td style="text-align: right;">£1,465.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">138</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations_2">Worked calculations<a class="headerlink" href="#worked-calculations_2" title="Permanent link">&para;</a></h3>
+<h4 id="firm-073-overall-95-market-rank-1">Firm 073 → overall <strong>95</strong> (market rank 1)<a class="headerlink" href="#firm-073-overall-95-market-rank-1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>185</code>, stored ARV <code>5.3390</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5402)</em></li>
+<li>Normalised reputation score (engine output): <strong>99.52</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£850.00</code> + modifiers [none] + additional costs [Identity Verification £25.00; Onboarding Fee £30.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00] → fees subtotal <code>£975.00</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £195.00 + VAT <code>£234.00</code> + disbursements [none] = <code>£0.00</code></li>
+<li><strong>TEP <code>£1,404.00</code></strong> → normalised price score: <strong>91.85</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: 1.9 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(99.5183×27.000 + 91.8532×23.000 + 100.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 70.0000×10.000) / 100</code> = <code>94.9962</code> → rounded <strong>95</strong> (engine: <strong>95</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-91-market-rank-24">Firm 001 → overall <strong>91</strong> (market rank 24)<a class="headerlink" href="#firm-001-overall-91-market-rank-24" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£645.00</code> + modifiers [none] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00] → fees subtotal <code>£765.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£153.00</code> + disbursements [none] = <code>£0.00</code></li>
+<li><strong>TEP <code>£918.00</code></strong> → normalised price score: <strong>99.10</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: 0.5 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×27.000 + 99.1047×23.000 + 63.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 90.0000×10.000) / 100</code> = <code>90.6343</code> → rounded <strong>91</strong> (engine: <strong>91</strong>  ✓ matches)</p>
+<h3 id="top-5-contactable-extraction_2">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">24</td>
+<td>Firm 001</td>
+<td style="text-align: right;">91</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">29</td>
+<td>Firm 002</td>
+<td style="text-align: right;">90</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">42</td>
+<td>Firm 010</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">70</td>
+<td>Firm 012</td>
+<td style="text-align: right;">82</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">81</td>
+<td>Firm 011</td>
+<td style="text-align: right;">67</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<hr />
+<h2 id="scenario-d-purchase-freehold-250k-mortgage-no-postcode-distance-excluded">Scenario D — Purchase · freehold · £250k · mortgage · NO postcode (distance excluded)<a class="headerlink" href="#scenario-d-purchase-freehold-250k-mortgage-no-postcode-distance-excluded" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Distance included:</strong> False</li>
+<li><strong>Firms ranked (full market):</strong> 190 (95 priced, 95 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 30, Price 25.556, Complaints 16.667, Regulatory 16.667, Distance 0, Offices 11.111</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£1,748.00</code> … max <code>£8,477.60</code></p>
+<h3 id="full-market-ranking_3">Full-market ranking<a class="headerlink" href="#full-market-ranking_3" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90.75</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,370.27</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">91.28</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,334.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">92.55</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,249.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">91.09</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,347.52</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">92.01</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,285.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 182</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.58</td>
+<td style="text-align: right;">90.83</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,364.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">92.34</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,263.71</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 167</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.93</td>
+<td style="text-align: right;">89.87</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,429.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 083</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.69</td>
+<td style="text-align: right;">91.05</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,350.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">86.63</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,647.90</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 057</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">91.46</td>
+<td style="text-align: right;">88.65</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,511.68</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">96.38</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,991.84</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">98.43</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,853.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 121</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.04</td>
+<td style="text-align: right;">83.92</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,829.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">94.01</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,151.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">95.97</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,019.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 150</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">95.97</td>
+<td style="text-align: right;">82.98</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,893.28</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 133</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.03</td>
+<td style="text-align: right;">81.65</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,982.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">94.15</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,141.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 017</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">89.78</td>
+<td style="text-align: right;">82.28</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,940.80</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">30</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">99.02</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£1,814.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">47</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">86.66</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">£2,645.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">50</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">83.24</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>87</strong></td>
+<td style="text-align: right;">£2,876.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">73</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">41.23</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>77</strong></td>
+<td style="text-align: right;">£5,702.72</td>
+</tr>
+<tr>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">89.27</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>65</strong></td>
+<td style="text-align: right;">£2,469.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">150</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>86</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations_3">Worked calculations<a class="headerlink" href="#worked-calculations_3" title="Permanent link">&para;</a></h3>
+<h4 id="firm-153-overall-94-market-rank-1">Firm 153 → overall <strong>94</strong> (market rank 1)<a class="headerlink" href="#firm-153-overall-94-market-rank-1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>252</code>, stored ARV <code>5.3648</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5778)</em></li>
+<li>Normalised reputation score (engine output): <strong>100.00</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£975.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Identity Verification £15.80; Onboarding Fee £20.00; Bank Transfer Administration Fee £36.00; File Storage Fee £30.00; SDLT Submission Administration Fee £72.00] → fees subtotal <code>£1,298.80</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £259.76 + VAT <code>£311.71</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£2,370.27</code></strong> → normalised price score: <strong>90.75</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: n/a → n/a (excluded)</p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(100.0000×30.000 + 90.7532×25.556 + 100.0000×16.667 + 100.0000×16.667 + 70.0000×11.111) / 100</code> = <code>94.3036</code> → rounded <strong>94</strong> (engine: <strong>94</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-90-market-rank-30">Firm 001 → overall <strong>90</strong> (market rank 30)<a class="headerlink" href="#firm-001-overall-90-market-rank-30" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£745.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £80.00] → fees subtotal <code>£1,095.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£219.00</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£1,814.00</code></strong> → normalised price score: <strong>99.02</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: n/a → n/a (excluded)</p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×30.000 + 99.0193×25.556 + 63.0000×16.667 + 100.0000×16.667 + 90.0000×11.111) / 100</code> = <code>89.5718</code> → rounded <strong>90</strong> (engine: <strong>90</strong>  ✓ matches)</p>
+<h3 id="top-5-contactable-extraction_3">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction_3" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">30</td>
+<td>Firm 001</td>
+<td style="text-align: right;">90</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">47</td>
+<td>Firm 010</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">50</td>
+<td>Firm 002</td>
+<td style="text-align: right;">87</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">73</td>
+<td>Firm 012</td>
+<td style="text-align: right;">77</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: right;">65</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<hr />
+<h2 id="scenario-e-purchase-freehold-250k-mortgage-birmingham-b1-2jb-price-priority-scorecard">Scenario E — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · PRICE priority scorecard<a class="headerlink" href="#scenario-e-purchase-freehold-250k-mortgage-birmingham-b1-2jb-price-priority-scorecard" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Distance included:</strong> True</li>
+<li><strong>Firms ranked (full market):</strong> 190 (95 priced, 95 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 20, Price 40, Complaints 12, Regulatory 12, Distance 8, Offices 8</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£1,748.00</code> … max <code>£8,477.60</code></p>
+<h3 id="full-market-ranking_4">Full-market ranking<a class="headerlink" href="#full-market-ranking_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">91.28</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,334.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90.75</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£2,370.27</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">98.43</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>94</strong></td>
+<td style="text-align: right;">£1,853.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">92.34</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,263.71</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">96.38</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£1,991.84</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">92.55</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,249.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">94.01</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,151.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">91.09</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,347.52</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">95.97</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,019.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">99.02</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£1,814.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">92.01</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,285.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">94.15</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,141.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 182</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.58</td>
+<td style="text-align: right;">90.83</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,364.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">86.63</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,647.90</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 167</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.93</td>
+<td style="text-align: right;">89.87</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,429.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 101</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.42</td>
+<td style="text-align: right;">89.76</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,436.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 168</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">74.70</td>
+<td style="text-align: right;">98.43</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,853.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 047</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">77.07</td>
+<td style="text-align: right;">94.81</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,097.25</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 064</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.38</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">60.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£1,748.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 089</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.82</td>
+<td style="text-align: right;">88.91</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,494.40</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">34</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">86.66</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">£2,645.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">42</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">83.24</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">£2,876.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">79</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">89.27</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>73</strong></td>
+<td style="text-align: right;">£2,469.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">83</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">41.23</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>71</strong></td>
+<td style="text-align: right;">£5,702.72</td>
+</tr>
+<tr>
+<td style="text-align: right;">141</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations_4">Worked calculations<a class="headerlink" href="#worked-calculations_4" title="Permanent link">&para;</a></h3>
+<h4 id="firm-073-overall-94-market-rank-1_1">Firm 073 → overall <strong>94</strong> (market rank 1)<a class="headerlink" href="#firm-073-overall-94-market-rank-1_1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>185</code>, stored ARV <code>5.3390</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5402)</em></li>
+<li>Normalised reputation score (engine output): <strong>99.52</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£850.00</code> + modifiers [Acting for Lender £199.00] + additional costs [Identity Verification £25.00; Onboarding Fee £30.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £100.00] → fees subtotal <code>£1,274.00</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £254.80 + VAT <code>£305.76</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£2,334.56</code></strong> → normalised price score: <strong>91.28</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: 1.9 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(99.5183×20.000 + 91.2839×40.000 + 100.0000×12.000 + 100.0000×12.000 + 100.0000×8.000 + 70.0000×8.000) / 100</code> = <code>94.0172</code> → rounded <strong>94</strong> (engine: <strong>94</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-92-market-rank-10">Firm 001 → overall <strong>92</strong> (market rank 10)<a class="headerlink" href="#firm-001-overall-92-market-rank-10" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£745.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £80.00] → fees subtotal <code>£1,095.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£219.00</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£1,814.00</code></strong> → normalised price score: <strong>99.02</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: 0.5 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×20.000 + 99.0193×40.000 + 63.0000×12.000 + 100.0000×12.000 + 100.0000×8.000 + 90.0000×8.000) / 100</code> = <code>92.4345</code> → rounded <strong>92</strong> (engine: <strong>92</strong>  ✓ matches)</p>
+<h3 id="top-5-contactable-extraction_4">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">10</td>
+<td>Firm 001</td>
+<td style="text-align: right;">92</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">34</td>
+<td>Firm 010</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">42</td>
+<td>Firm 002</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">79</td>
+<td>Firm 011</td>
+<td style="text-align: right;">73</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">83</td>
+<td>Firm 012</td>
+<td style="text-align: right;">71</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<hr />
+<h2 id="scenario-f-purchase-freehold-250k-mortgage-birmingham-b1-2jb-solar-panels-existing-tenancy-estate-management-charge-cps-pricing-items">Scenario F — Purchase · freehold · £250k · mortgage · Birmingham B1 2JB · solar panels + existing tenancy + estate management charge (CPS pricing items)<a class="headerlink" href="#scenario-f-purchase-freehold-250k-mortgage-birmingham-b1-2jb-solar-panels-existing-tenancy-estate-management-charge-cps-pricing-items" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Distance included:</strong> True</li>
+<li><strong>Firms ranked (full market):</strong> 190 (95 priced, 95 without a usable quote for this intake) · <strong>Top-5 contactable:</strong> 5</li>
+<li><strong>Weights applied:</strong> Reputation 27, Price 23, Complaints 15, Regulatory 15, Distance 10, Offices 10</li>
+</ul>
+<p><strong>Normalisation context (priced firms only):</strong> ARV min <code>1.9879</code> … max <code>5.3648</code> · TEP min <code>£1,748.00</code> … max <code>£9,125.60</code></p>
+<h3 id="full-market-ranking_5">Full-market ranking<a class="headerlink" href="#full-market-ranking_5" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Firm 153</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">82.78</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£3,018.27</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Firm 073</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.52</td>
+<td style="text-align: right;">83.27</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>93</strong></td>
+<td style="text-align: right;">£2,982.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Firm 027</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">90.21</td>
+<td style="text-align: right;">84.23</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>92</strong></td>
+<td style="text-align: right;">£2,911.71</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Firm 123</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.48</td>
+<td style="text-align: right;">84.42</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,897.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Firm 084</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">96.44</td>
+<td style="text-align: right;">79.02</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£3,295.90</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Firm 072</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.73</td>
+<td style="text-align: right;">83.09</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,995.52</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Firm 001</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">90.33</td>
+<td style="text-align: right;">99.11</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£1,814.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Firm 007</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">88.28</td>
+<td style="text-align: right;">87.22</td>
+<td style="text-align: right;">88.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>91</strong></td>
+<td style="text-align: right;">£2,691.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Firm 121</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.04</td>
+<td style="text-align: right;">76.55</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,477.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Firm 085</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">87.91</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,639.84</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Firm 177</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.34</td>
+<td style="text-align: right;">89.79</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,501.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Firm 170</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">93.75</td>
+<td style="text-align: right;">83.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,933.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Firm 182</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.58</td>
+<td style="text-align: right;">82.86</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,012.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Firm 017</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">89.78</td>
+<td style="text-align: right;">75.05</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,588.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Firm 167</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">94.93</td>
+<td style="text-align: right;">81.98</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,077.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Firm 133</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">97.03</td>
+<td style="text-align: right;">74.48</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,630.56</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Firm 066</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">98.38</td>
+<td style="text-align: right;">66.95</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£4,186.40</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Firm 104</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">84.96</td>
+<td style="text-align: right;">87.54</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£2,667.20</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Firm 142</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">99.66</td>
+<td style="text-align: right;">70.17</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;">£3,948.80</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Firm 095</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">85.31</td>
+<td style="text-align: right;">85.88</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;"><strong>89</strong></td>
+<td style="text-align: right;">£2,789.60</td>
+</tr>
+</tbody>
+</table>
+<p><em>...170 further firms omitted (showing top 20 of 190). Remaining enrolled firm(s) below rank 20:</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Firm</th>
+<th style="text-align: center;">Enr.</th>
+<th style="text-align: right;">Rep</th>
+<th style="text-align: right;">Price</th>
+<th style="text-align: right;">Compl</th>
+<th style="text-align: right;">Reg</th>
+<th style="text-align: right;">Dist</th>
+<th style="text-align: right;">Off</th>
+<th style="text-align: right;"><strong>Overall</strong></th>
+<th style="text-align: right;">TEP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">37</td>
+<td>Firm 002</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">80.28</td>
+<td style="text-align: right;">75.93</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>87</strong></td>
+<td style="text-align: right;">£3,524.00</td>
+</tr>
+<tr>
+<td style="text-align: right;">38</td>
+<td>Firm 010</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">79.30</td>
+<td style="text-align: right;">79.05</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">95.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>87</strong></td>
+<td style="text-align: right;">£3,293.60</td>
+</tr>
+<tr>
+<td style="text-align: right;">72</td>
+<td>Firm 012</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">77.98</td>
+<td style="text-align: right;">37.61</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;"><strong>78</strong></td>
+<td style="text-align: right;">£6,350.72</td>
+</tr>
+<tr>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: center;">★</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">81.43</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">85.00</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;"><strong>65</strong></td>
+<td style="text-align: right;">£3,117.92</td>
+</tr>
+<tr>
+<td style="text-align: right;">140</td>
+<td>Firm 004</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: right;">94.46</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">55.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;"><strong>88</strong></td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><em>★ = extracted into top-5 contactable · ✓ = enrolled but outside top-5 or without a usable quote.</em></p>
+<h3 id="worked-calculations_5">Worked calculations<a class="headerlink" href="#worked-calculations_5" title="Permanent link">&para;</a></h3>
+<h4 id="firm-153-overall-93-market-rank-1">Firm 153 → overall <strong>93</strong> (market rank 1)<a class="headerlink" href="#firm-153-overall-93-market-rank-1" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.9</code>, reviews <code>252</code>, stored ARV <code>5.3648</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.5778)</em></li>
+<li>Normalised reputation score (engine output): <strong>100.00</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£975.00</code> + modifiers [Acting for Lender £150.00; Solar Panels £150.00; Freehold Management Company £150.00; Existing Tenancy £150.00] + additional costs [Identity Verification £15.80; Onboarding Fee £20.00; Bank Transfer Administration Fee £36.00; File Storage Fee £30.00; SDLT Submission Administration Fee £72.00] → fees subtotal <code>£1,748.80</code></li>
+<li>×1.20 confidence uplift (estimated price) → uplift £349.76 + VAT <code>£419.71</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£3,018.27</code></strong> → normalised price score: <strong>82.78</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>100.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>1</code> → band <strong>70</strong>  ·  <strong>Distance</strong>: 0.9 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(100.0000×27.000 + 82.7821×23.000 + 100.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 70.0000×10.000) / 100</code> = <code>93.0399</code> → rounded <strong>93</strong> (engine: <strong>93</strong>  ✓ matches)</p>
+<h4 id="firm-001-overall-91-market-rank-7">Firm 001 → overall <strong>91</strong> (market rank 7)<a class="headerlink" href="#firm-001-overall-91-market-rank-7" title="Permanent link">&para;</a></h4>
+<p><strong>Reputation</strong></p>
+<ul>
+<li>Inputs: rating <code>4.372773722627737</code>, reviews <code>1370</code>, stored ARV <code>4.8462</code> <em>(Annex One formula rating×(1+0.025·ln(reviews+1)) = 5.1624)</em></li>
+<li>Normalised reputation score (engine output): <strong>90.33</strong></li>
+</ul>
+<p><strong>Price (Total Effective Price)</strong></p>
+<ul>
+<li>Anchor base fee <code>£745.00</code> + modifiers [Acting for Lender £150.00] + additional costs [Onboarding Fee £50.00; Bank Transfer Administration Fee £40.00; File Storage Fee £30.00; SDLT Submission Administration Fee £80.00] → fees subtotal <code>£1,095.00</code></li>
+<li>Verified price — no confidence uplift + VAT <code>£219.00</code> + disbursements [Searches £350.00; HM Land Registry Fees £150.00] = <code>£500.00</code></li>
+<li><strong>TEP <code>£1,814.00</code></strong> → normalised price score: <strong>99.11</strong></li>
+</ul>
+<p><strong>Complaints</strong> (absolute): <strong>63.00</strong>  ·  <strong>Regulatory</strong> (absolute): <strong>100.00</strong>  ·  <strong>Offices</strong>: count <code>8</code> → band <strong>90</strong>  ·  <strong>Distance</strong>: 0.5 mi → <strong>100.00</strong></p>
+<p><strong>Overall (weighted sum ÷ 100):</strong>
+- <code>(90.3339×27.000 + 99.1054×23.000 + 63.0000×15.000 + 100.0000×15.000 + 100.0000×10.000 + 90.0000×10.000) / 100</code> = <code>90.6344</code> → rounded <strong>91</strong> (engine: <strong>91</strong>  ✓ matches)</p>
+<h3 id="cps-pricing-item-breakdown-firm-002">CPS pricing-item breakdown — Firm 002<a class="headerlink" href="#cps-pricing-item-breakdown-firm-002" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Base fee: <code>£1,250.00</code></li>
+<li>Modifier — Acting for Lender: <code>£200.00</code></li>
+<li>Modifier — Solar Panels: <code>£150.00</code></li>
+<li>Modifier — Freehold Management Company: <code>£150.00</code></li>
+<li>Modifier — Existing Tenancy: <code>£150.00</code></li>
+<li>Additional cost — Identity Verification: <code>£25.00</code></li>
+<li>Additional cost — Onboarding Fee: <code>£20.00</code></li>
+<li>Additional cost — Bank Transfer Administration Fee: <code>£35.00</code></li>
+<li>Additional cost — File Storage Fee: <code>£30.00</code></li>
+<li>Additional cost — SDLT Submission Administration Fee: <code>£90.00</code></li>
+<li>Fees subtotal (<code>P_estimated</code>): <code>£2,100.00</code></li>
+<li>Estimated-price uplift (×1.20): <code>+£420.00</code></li>
+<li>VAT (20%): <code>£504.00</code></li>
+<li>Disbursement — Searches: <code>£350.00</code></li>
+<li>Disbursement — HM Land Registry Fees: <code>£150.00</code></li>
+<li><strong>Total Effective Price: <code>£3,524.00</code></strong></li>
+</ul>
+<h3 id="top-5-contactable-extraction_5">Top-5 contactable extraction<a class="headerlink" href="#top-5-contactable-extraction_5" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Contact rank</th>
+<th style="text-align: right;">Market #</th>
+<th>Firm</th>
+<th style="text-align: right;">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">7</td>
+<td>Firm 001</td>
+<td style="text-align: right;">91</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">37</td>
+<td>Firm 002</td>
+<td style="text-align: right;">87</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">38</td>
+<td>Firm 010</td>
+<td style="text-align: right;">87</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">72</td>
+<td>Firm 012</td>
+<td style="text-align: right;">78</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">83</td>
+<td>Firm 011</td>
+<td style="text-align: right;">65</td>
+</tr>
+</tbody>
+</table>
+<p><em>5 enrolled+active firm(s) returned a usable quote for this intake; top 5 by overall extracted as contactable.</em></p>
+<h2 id="observations-from-the-data">Observations from the data<a class="headerlink" href="#observations-from-the-data" title="Permanent link">&para;</a></h2>
+<p>These fall out of the six worked scenarios above; they describe current behaviour, not bugs to
+fix here.</p>
+<ol>
+<li><strong>The stored Adjusted Reputation Value still does not match the Annex One §5.6 formula.</strong> Every
+   worked calculation above shows the stored ARV below <code>rating×(1+0.025·ln(reviews+1))</code> (e.g.
+   Firm 153: stored <code>5.3648</code> vs spec <code>5.5778</code>; Firm 001: stored <code>4.8462</code> vs spec <code>5.1624</code>).
+   <code>scripts/validate_factor_scores.py</code> confirms this is systematic: all 161 firms with a recorded
+   rating diverge beyond the 0.01 tolerance. This is the same previously-flagged founder decision,
+   not new.</li>
+<li><strong>Roughly half the 190-firm market has no usable quote for any single-tenure intake.</strong> 95/190
+   firms price a freehold purchase (A, D, E, F), 89/190 a leasehold purchase (B), 93/190 a freehold
+   sale (C) — the remainder have no price card, <code>price_type=no_data</code>, or every anchor "withheld" in
+   the 07.07.26 export. Price-less firms rank after all priced firms on the remaining five factors
+   rescaled to 100, and are never eligible for top-5 contactable (issue #50).</li>
+<li><strong>Firm 004 (CML-004) — enrolled and active-in-pilot — is priceless in every scenario
+   tested.</strong> Its price card has every anchor marked <code>"withheld"</code> for all four tenure/side
+   combinations in the current export (a genuine data gap, not an engine bug), so despite scoring a
+   competitive 86–88 on the remaining five factors it never appears in top-5 contactable, leaving
+   only 5 of the 6 enrolled+active firms eligible per scenario.</li>
+<li><strong>Distance is flat for a Birmingham-centre postcode.</strong> B1 2JB puts nearly every priced firm
+   inside the 0–2mi band (score 100) in scenarios A/B/C/E/F, so distance barely separates firms for
+   this postcode; scenario D shows the mechanical alternative — with no postcode, distance weight
+   (10) is stripped and the other five weights rescale by ÷0.9 (27→30, 23→25.556, 15→16.667 ×2,
+   10→11.111), reproduced exactly in that scenario's worked calculation.</li>
+<li><strong>The price-priority scorecard (E) visibly reorders the market.</strong> Reputation-heavy firms from
+   the balanced-scorecard top 20 (Firm 153, Firm 073) are joined at the top by
+   price-competitive firms (Firm 177, Firm 168) that ranked lower under balanced
+   weights; Firm 064 — the only top-20 firm carrying a real regulatory deduction (60.00, a
+   Band-C-equivalent finding) — still reaches rank 19 purely because Price is weighted 40.</li>
+<li><strong>Scenario F's CPS pricing items (#55/#83) are live and visible in a real quote.</strong> Poole
+   Alcock's breakdown shows Solar Panels, Freehold Management Company and Existing Tenancy each
+   adding £150.00 to the £2,100.00 fees subtotal (on top of the pre-existing Acting for Lender
+   £200.00) — £450.00 of new modifier value that would have been silently dropped before #55.
+   Firm 001' verified price card, by contrast, has all three of those modifiers priced at £0.00, so
+   it was swapped out for Firm 002 as the worked firm for this scenario (see the script's
+   scenario-F comment).</li>
+<li><strong>No genuine tie-break example arose from these six scenarios.</strong> Many firms share the same
+   <em>rounded</em> integer overall score (expected, on a 0–100 integer display scale with ~95 priced
+   firms per scenario), but ranking always sorts on the full-precision raw overall first — no two
+   firms shared an identical raw overall in any scenario, so the §11 tie-break chain (reputation →
+   complaints → regulatory → price → distance → offices → alphabetical) was never actually invoked
+   to break a tie here. It remains pinned by dedicated unit tests in <code>tests/unit/test_scorecard.py</code>.</li>
+</ol>
+<h2 id="deviations">Deviations<a class="headerlink" href="#deviations" title="Permanent link">&para;</a></h2>
+<p>None. Every worked calculation in this document (12 across the six scenarios, plus the
+scenario-A baseline hand re-derivation — 13 checks in all) reproduced the live engine's rounded overall score exactly
+— see the "✓ matches" annotation on each. <code>scripts/generate_worked_examples.py</code> computes every
+number in this document directly from <code>search_firms()</code>'s return value (or, for the hand
+re-derivation, from the same per-firm factor scores summed by the documented formula), so there is
+no separate manual-transcription step where a number could have drifted from the engine.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../system-design/" class="md-footer__link md-footer__link--prev" aria-label="Previous: System design">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                System design
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../email-workflow-diagram/" class="md-footer__link md-footer__link--next" aria-label="Next: Email workflow">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Email workflow
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Choose My Lawyer
+
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6970bfe9.min.js"></script>
+      
+    
+  </body>
+</html>
